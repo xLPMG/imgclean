@@ -57,6 +57,8 @@ if(APPLE)
         set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
         find_package(OpenMP REQUIRED)
     endif()
+else()
+    find_package(OpenMP REQUIRED)
 endif()
 
 target_link_libraries(imgclean PUBLIC OpenMP::OpenMP_CXX)
