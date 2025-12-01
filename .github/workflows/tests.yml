@@ -22,7 +22,11 @@ jobs:
       - name: Install Dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install -y cmake g++ libomp-dev 
+            sudo apt-get install -y g++ libomp-dev
+      - name: Install latest CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '4.2.0'
       - name: Compile Tests
         run: |
             cd project
