@@ -13,12 +13,25 @@ file(GLOB_RECURSE sources   src/*.cpp include/imgclean/*.h)
 file(GLOB_RECURSE tests     test/*.cpp)
 file(GLOB_RECURSE data      res/*)
 
+# Exclude main from sources
+list(FILTER sources EXCLUDE REGEX ".*main.*\\.cpp$")
+list(FILTER tests EXCLUDE REGEX ".*main.*\\.cpp$")
+
+message("--------------------------------------------------")
+message(STATUS "Sources: ${sources}")
+message(STATUS "Tests: ${tests}")
+message(STATUS "Data: ${data}")
+message("--------------------------------------------------")
+
 ###############################################################################
 ## target definitions #########################################################
 ###############################################################################
 
-# add the data to the target, so it becomes visible in some IDE
-add_executable(imgclean ${sources} ${data})
+add_executable(imgclean         src/main.cpp    ${sources} ${data})
+add_executable(imgclean_tests   test/main.cpp   ${tests} ${sources} ${data})
+
+enable_testing()
+add_test(NAME imgclean_tests COMMAND imgclean_tests)
 
 # just for example add some compiler flags
 # target_compile_options(imgclean PUBLIC -std=c++1y -Wall -Wfloat-conversion)
@@ -33,10 +46,23 @@ file(COPY ${data} DESTINATION resources)
 ## dependencies ###############################################################
 ###############################################################################
 
-add_subdirectory(include/catch2)
+if(APPLE)
+    find_package(OpenMP)
+    if(NOT OpenMP_FOUND)
+        message(STATUS "Using manual OpenMP configuration for macOS...")
+        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
+        set(OpenMP_C_LIB_NAMES "omp")
+        set(OpenMP_CXX_LIB_NAMES "omp")
+        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
+        find_package(OpenMP REQUIRED)
+    endif()
+endif()
 
-find_package(OpenMP REQUIRED)
 target_link_libraries(imgclean PUBLIC OpenMP::OpenMP_CXX)
+
+add_subdirectory(include/catch2)
+target_link_libraries(imgclean_tests PRIVATE catch2 PRIVATE OpenMP::OpenMP_CXX)
 
 ###############################################################################
 ## packaging ##################################################################
