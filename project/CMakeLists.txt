@@ -46,21 +46,7 @@ file(COPY ${data} DESTINATION resources)
 ## dependencies ###############################################################
 ###############################################################################
 
-if(APPLE)
-    find_package(OpenMP)
-    if(NOT OpenMP_FOUND)
-        message(STATUS "Using manual OpenMP configuration for macOS...")
-        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
-        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
-        set(OpenMP_C_LIB_NAMES "omp")
-        set(OpenMP_CXX_LIB_NAMES "omp")
-        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
-        find_package(OpenMP REQUIRED)
-    endif()
-else()
-    find_package(OpenMP REQUIRED)
-endif()
-
+find_package(OpenMP REQUIRED)
 target_link_libraries(imgclean PUBLIC OpenMP::OpenMP_CXX)
 
 add_subdirectory(include/catch2)
