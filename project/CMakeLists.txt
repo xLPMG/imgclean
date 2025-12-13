@@ -14,8 +14,8 @@ file(GLOB_RECURSE tests     test/*.cpp)
 file(GLOB_RECURSE data      res/*)
 
 # Exclude main from sources
-list(FILTER sources EXCLUDE REGEX ".*main.*\\.cpp$")
-list(FILTER tests EXCLUDE REGEX ".*main.*\\.cpp$")
+list(FILTER sources EXCLUDE REGEX ".*[Mm]ain.*\\.cpp$")
+list(FILTER tests EXCLUDE REGEX ".*[Mm]ain.*\\.cpp$")
 
 message("--------------------------------------------------")
 message(STATUS "Sources: ${sources}")
@@ -29,6 +29,8 @@ message("--------------------------------------------------")
 
 add_executable(imgclean         src/main.cpp    ${sources} ${data})
 add_executable(imgclean_tests   test/main.cpp   ${tests} ${sources} ${data})
+target_include_directories(imgclean PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(imgclean_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 enable_testing()
 add_test(NAME imgclean_tests COMMAND imgclean_tests)
@@ -51,6 +53,44 @@ target_link_libraries(imgclean PUBLIC OpenMP::OpenMP_CXX)
 
 add_subdirectory(include/catch2)
 target_link_libraries(imgclean_tests PRIVATE catch2 PRIVATE OpenMP::OpenMP_CXX)
+
+###############################################################################
+## CImg (header-only) and optional image libs #################################
+###############################################################################
+
+find_path(CIMG_INCLUDE_DIR CImg.h
+    PATHS /usr/local/include /opt/homebrew/include /usr/include
+)
+if (CIMG_INCLUDE_DIR)
+    message(STATUS "Found CImg: ${CIMG_INCLUDE_DIR}")
+    target_compile_definitions(imgclean PUBLIC CIMG_FOUND)
+    target_compile_definitions(imgclean_tests PUBLIC CIMG_FOUND)
+    target_include_directories(imgclean PUBLIC ${CIMG_INCLUDE_DIR})
+    target_include_directories(imgclean_tests PUBLIC ${CIMG_INCLUDE_DIR})
+else()
+    message(WARNING "CImg not found - only PPM_ASCII format will be supported")
+endif()
+
+find_package(PNG QUIET)
+find_package(JPEG QUIET)
+if (PNG_FOUND)
+    message(STATUS "Found PNG: ${PNG_LIBRARIES}")
+    target_compile_definitions(imgclean PUBLIC cimg_use_png)
+    target_compile_definitions(imgclean_tests PUBLIC cimg_use_png)
+    target_link_libraries(imgclean PUBLIC PNG::PNG)
+    target_link_libraries(imgclean_tests PUBLIC PNG::PNG)
+else()
+    message(STATUS "PNG not found - PNG support disabled")
+endif()
+if (JPEG_FOUND)
+    message(STATUS "Found JPEG: ${JPEG_LIBRARIES}")
+    target_compile_definitions(imgclean PUBLIC cimg_use_jpeg)
+    target_compile_definitions(imgclean_tests PUBLIC cimg_use_jpeg)
+    target_link_libraries(imgclean PUBLIC JPEG::JPEG)
+    target_link_libraries(imgclean_tests PUBLIC JPEG::JPEG)
+else()
+    message(STATUS "JPEG not found - JPEG support disabled")
+endif()
 
 ###############################################################################
 ## packaging ##################################################################
