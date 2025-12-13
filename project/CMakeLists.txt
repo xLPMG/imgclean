@@ -27,18 +27,13 @@ message("--------------------------------------------------")
 ## target definitions #########################################################
 ###############################################################################
 
-add_executable(imgclean         src/main.cpp    ${sources} ${data})
-add_executable(imgclean_tests   test/main.cpp   ${tests} ${sources} ${data})
+add_executable(imgclean         src/Main.cpp    ${sources} ${data})
+add_executable(imgclean_tests   test/Main.cpp   ${tests} ${sources} ${data})
 target_include_directories(imgclean PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(imgclean_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 enable_testing()
 add_test(NAME imgclean_tests COMMAND imgclean_tests)
-
-# just for example add some compiler flags
-# target_compile_options(imgclean PUBLIC -std=c++1y -Wall -Wfloat-conversion)
-# this lets me include files relative to the root source directory with a <> pair
-# target_include_directories(imgclean PUBLIC src/main include)
 
 # this copies all resource files in the build directory
 # we need this, because we want to work with paths relative to the executable
