@@ -108,7 +108,7 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 		size_t pixel_count = static_cast<size_t>(out.width) * out.height * 3;
 		out.pixels.resize(pixel_count);
 
-# pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
 		for (int y = 0; y < out.height; ++y)
 		{
 			for (int x = 0; x < out.width; ++x)
@@ -181,8 +181,7 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 	{
 		cimg_library::CImg<unsigned char> cimg(img.width, img.height, 1, 3);
 
-// Convert from interleaved RGB to planar format
-# pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
 		for (int y = 0; y < img.height; ++y)
 		{
 			for (int x = 0; x < img.width; ++x)
