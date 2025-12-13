@@ -15,7 +15,31 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-with-cimg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y g++ libomp-dev cimg-dev libpng-dev libjpeg-dev
+      - name: Install latest CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '4.2.0'
+      - name: Compile Tests
+        run: |
+            cd project
+            mkdir -p build
+            cd build
+            cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release ..
+            cmake --build . --parallel 4
+      - name: Run Tests
+        run: |
+            cd project/build
+            ctest
+
+  build-without-cimg:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
