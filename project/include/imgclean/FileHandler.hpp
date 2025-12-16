@@ -19,9 +19,6 @@ public:
 	//! Convenience to build a FilePath with detected format
 	static FilePath make_file_path(const std::string& path);
 
-	//! Reads an integer from stream, skipping comments and whitespace
-	static bool readInt(std::istream& in, int& out);
-
 	//! Loads an image into PPM
 	//! The file type is inferred from src file ending
 	static bool load_image(const FilePath& src, PPMImage& out);

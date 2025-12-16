@@ -32,19 +32,6 @@ FilePath FileHandler::make_file_path(const std::string& path)
 	return FilePath{path, detect_format(path)};
 }
 
-bool FileHandler::readInt(std::istream& in, int& out)
-{
-	while (true)
-	{
-		in >> std::ws;
-		if (in.peek() == '#')
-			in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-		else
-			break;
-	}
-	return static_cast<bool>(in >> out);
-}
-
 bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 {
 	if (src.format == ImageFormat::UNKNOWN) return false;
@@ -55,30 +42,72 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 		std::ifstream file(src.path, std::ios::binary);
 		if (!file) return false;
 
-		std::string magic;
-		file >> magic;
-		if (magic != "P3") return false;
+		// ppm header
+		std::string line;
+		size_t values_read = 0;
+		int header[3]      = {0, 0, 0}; // width, height, maxval
 
-		if (!readInt(file, out.width) || !readInt(file, out.height) || !readInt(file, out.maxval) ||
-		    out.width <= 0 || out.height <= 0 || out.maxval <= 0 || out.maxval > 65535)
+		std::getline(file, line);
+		if (line != "P3") return false; // first line must be P3
+		while (values_read < 3 && std::getline(file, line))
+		{
+			if (line.empty() || line[0] == '#') continue;
+
+			const char* p = line.c_str();
+			char* end;
+
+			while (*p && values_read < 3)
+			{
+				long v = std::strtol(p, &end, 10);
+				if (p == end) break;
+				header[values_read++] = static_cast<int>(v);
+				p                     = end;
+			}
+		}
+
+		if (values_read != 3)
 		{
 			out.clear();
 			return false;
 		}
 
-		size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3;
+		out.width  = header[0];
+		out.height = header[1];
+		out.maxval = header[2];
 
+		const size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3;
 		out.pixels.resize(pixel_count);
 
-		for (size_t i = 0; i < pixel_count; ++i)
+		// read pixel data
+		size_t idx    = 0;
+		uint16_t* dst = out.pixels.data();
+		while (idx < pixel_count && std::getline(file, line))
 		{
-			int val;
-			if (!readInt(file, val) || val < 0 || val > out.maxval)
+			if (line.empty() || line[0] == '#') continue;
+
+			const char* p = line.c_str();
+			char* end     = nullptr;
+
+			while (*p && idx < pixel_count)
 			{
-				out.clear();
-				return false;
+				long v = std::strtol(p, &end, 10);
+				if (p == end) break;
+
+				if (v < 0 || v > out.maxval)
+				{
+					out.clear();
+					return false;
+				}
+
+				dst[idx++] = static_cast<uint16_t>(v);
+				p          = end;
 			}
-			out.pixels[i] = static_cast<uint16_t>(val);
+		}
+
+		if (idx != pixel_count)
+		{
+			out.clear();
+			return false;
 		}
 
 		return true;
@@ -89,11 +118,10 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	try
 	{
 		cimg_library::CImg<unsigned char> img(src.path.c_str());
-
 		out.width          = img.width();
 		out.height         = img.height();
 		out.maxval         = 255;
-		size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3u;
+		const size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3u;
 		out.pixels.resize(pixel_count);
 
 # pragma omp parallel for collapse(2)
@@ -144,25 +172,25 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 		std::ofstream file(dst.path);
 		if (!file.is_open()) return false;
 
-		// Write PPM header
-		file << "P3\n";
-		file << img.width << " " << img.height << "\n";
-		file << img.maxval << "\n";
+		const size_t pixel_count = static_cast<size_t>(img.width) * img.height * 3;
 
-		// Write pixel data
-		size_t pixel_count = static_cast<size_t>(img.width) * img.height * 3;
+		std::string buffer;
+		buffer.reserve(1 << 20);
+		buffer += "P3\n";
+		buffer += std::to_string(img.width) + " " + std::to_string(img.height) + "\n";
+		buffer += std::to_string(img.maxval) + "\n";
 		for (size_t i = 0; i < pixel_count; ++i)
 		{
-			file << img.pixels[i];
-			if ((i + 1) % 3 == 0)
+			buffer += std::to_string(img.pixels[i]);
+			buffer += ((i + 1) % 3 == 0) ? '\n' : ' ';
+			if (buffer.size() > (1 << 19))
 			{
-				file << "\n"; // New line after each pixel
-			}
-			else
-			{
-				file << " ";
+				file.write(buffer.data(), buffer.size());
+				buffer.clear();
 			}
 		}
+
+		if (!buffer.empty()) file.write(buffer.data(), buffer.size());
 
 		return file.good();
 	}

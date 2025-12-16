@@ -116,6 +116,8 @@ int main(int argc, char** argv)
 ///// LOAD INPUT IMAGE
 /////////////////////////////////////////////////////////////////////////
 
+	std::ios::sync_with_stdio(false);
+
 	imgclean::FilePath input_file = imgclean::FileHandler::make_file_path(input_path);
 	if (!check_format_support(input_file.format, input_path)) return EXIT_FAILURE;
 
