@@ -15,18 +15,12 @@
 namespace imgclean
 {
 
-std::string FileHandler::to_lower(std::string s)
-{
-	std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
-	return s;
-}
-
 ImageFormat FileHandler::detect_format(const std::string& path)
 {
-	auto p   = to_lower(path);
-	auto dot = p.find_last_of('.');
+	auto dot = path.find_last_of('.');
 	if (dot == std::string::npos) return ImageFormat::UNKNOWN;
-	auto ext = p.substr(dot + 1);
+	std::string ext = path.substr(dot + 1);
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
 	if (ext == "ppm") return ImageFormat::PPM_ASCII;
 	if (ext == "png") return ImageFormat::PNG;
 	if (ext == "jpg" || ext == "jpeg") return ImageFormat::JPG;
@@ -38,6 +32,19 @@ FilePath FileHandler::make_file_path(const std::string& path)
 	return FilePath{path, detect_format(path)};
 }
 
+bool FileHandler::readInt(std::istream& in, int& out)
+{
+	while (true)
+	{
+		in >> std::ws;
+		if (in.peek() == '#')
+			in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		else
+			break;
+	}
+	return static_cast<bool>(in >> out);
+}
+
 bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 {
 	if (src.format == ImageFormat::UNKNOWN) return false;
@@ -45,47 +52,28 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	// Handle PPM_ASCII (P3) format manually
 	if (src.format == ImageFormat::PPM_ASCII)
 	{
-		std::ifstream file(src.path);
-		if (!file.is_open()) return false;
+		std::ifstream file(src.path, std::ios::binary);
+		if (!file) return false;
 
 		std::string magic;
 		file >> magic;
-		// only accept P3 (ASCII) format
 		if (magic != "P3") return false;
 
-		// Skip comments
-		char c = file.peek();
-		while (c == '#' || std::isspace(c))
-		{
-			if (c == '#')
-			{
-				std::string comment;
-				std::getline(file, comment);
-			}
-			else
-			{
-				file.get();
-			}
-			c = file.peek();
-		}
-
-		// Read width, height, maxval
-		// Check if values are non-negative
-		if (!(file >> out.width >> out.height >> out.maxval) || out.width <= 0 || out.height <= 0 ||
-		    out.maxval <= 0)
+		if (!readInt(file, out.width) || !readInt(file, out.height) || !readInt(file, out.maxval) ||
+		    out.width <= 0 || out.height <= 0 || out.maxval <= 0 || out.maxval > 65535)
 		{
 			out.clear();
 			return false;
 		}
 
-		// Read pixel data
-		size_t pixel_count = static_cast<size_t>(out.width) * out.height * 3;
+		size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3;
+
 		out.pixels.resize(pixel_count);
 
 		for (size_t i = 0; i < pixel_count; ++i)
 		{
 			int val;
-			if (!(file >> val))
+			if (!readInt(file, val) || val < 0 || val > out.maxval)
 			{
 				out.clear();
 				return false;
@@ -105,10 +93,10 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 		out.width          = img.width();
 		out.height         = img.height();
 		out.maxval         = 255;
-		size_t pixel_count = static_cast<size_t>(out.width) * out.height * 3;
+		size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3u;
 		out.pixels.resize(pixel_count);
 
-#pragma omp parallel for collapse(2)
+# pragma omp parallel for collapse(2)
 		for (int y = 0; y < out.height; ++y)
 		{
 			for (int x = 0; x < out.width; ++x)
@@ -142,7 +130,11 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 	if (file_path.has_parent_path())
 	{
 		std::error_code ec;
-		std::filesystem::create_directories(file_path.parent_path(), ec);
+		const auto parent = file_path.parent_path();
+		if (!std::filesystem::exists(parent))
+		{
+			std::filesystem::create_directories(parent, ec);
+		}
 		if (ec) return false;
 	}
 
@@ -181,7 +173,7 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 	{
 		cimg_library::CImg<unsigned char> cimg(img.width, img.height, 1, 3);
 
-#pragma omp parallel for collapse(2)
+# pragma omp parallel for collapse(2)
 		for (int y = 0; y < img.height; ++y)
 		{
 			for (int x = 0; x < img.width; ++x)

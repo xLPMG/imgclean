@@ -5,6 +5,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef MEASURE_PERFORMANCE
+#include <chrono>
+#endif
+
 //! Check if the required format support is available based on compile-time definitions
 bool check_format_support(const imgclean::ImageFormat& format, const std::string& path)
 {
@@ -102,6 +106,13 @@ int main(int argc, char** argv)
 	}
 
 /////////////////////////////////////////////////////////////////////////
+///// START TIMER
+/////////////////////////////////////////////////////////////////////////
+#ifdef MEASURE_PERFORMANCE
+	auto start_time = std::chrono::high_resolution_clock::now();
+#endif
+
+/////////////////////////////////////////////////////////////////////////
 ///// LOAD INPUT IMAGE
 /////////////////////////////////////////////////////////////////////////
 
@@ -131,6 +142,12 @@ int main(int argc, char** argv)
 	}
 
 	std::cout << "Saved image to '" << output_path << "'\n";
+
+#ifdef MEASURE_PERFORMANCE
+	auto end_time = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	std::cout << "Processing time: " << duration << " ms\n";
+#endif
 
 	return EXIT_SUCCESS;
 }

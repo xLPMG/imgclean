@@ -6,6 +6,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ###############################################################################
+## build options ###############################################################
+###############################################################################
+
+option(MEASURE_PERFORMANCE "Enable performance timing in the binary" OFF)
+
+###############################################################################
 ## file globbing ##############################################################
 ###############################################################################
 
@@ -31,6 +37,11 @@ add_executable(imgclean         src/Main.cpp    ${sources} ${data})
 add_executable(imgclean_tests   test/Main.cpp   ${tests} ${sources} ${data})
 target_include_directories(imgclean PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(imgclean_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (MEASURE_PERFORMANCE)
+    message(STATUS "MEASURE_PERFORMANCE: enabled")
+    target_compile_definitions(imgclean PUBLIC MEASURE_PERFORMANCE)
+endif()
 
 enable_testing()
 add_test(NAME imgclean_tests COMMAND imgclean_tests)

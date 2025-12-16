@@ -13,14 +13,14 @@ class FileHandler
 {
 public:
 
-    //! Convert string to lowercase
-    static std::string to_lower(std::string s);
-
 	//! Detect format from file extension (e.g. .ppm, .png, .jpg, .jpeg)
 	static ImageFormat detect_format(const std::string& path);
 
 	//! Convenience to build a FilePath with detected format
 	static FilePath make_file_path(const std::string& path);
+
+	//! Reads an integer from stream, skipping comments and whitespace
+	static bool readInt(std::istream& in, int& out);
 
 	//! Loads an image into PPM
 	//! The file type is inferred from src file ending
