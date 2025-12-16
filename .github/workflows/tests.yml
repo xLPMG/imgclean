@@ -16,13 +16,14 @@ on:
 
 jobs:
   build-with-cimg:
+    name: Build and Test (+Valgrind) with CImg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install Dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install -y g++ libomp-dev cimg-dev libpng-dev libjpeg-dev
+            sudo apt-get install -y g++ libomp-dev cimg-dev libpng-dev libjpeg-dev valgrind
       - name: Install latest CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -37,16 +38,17 @@ jobs:
       - name: Run Tests
         run: |
             cd project/build
-            ctest
+            valgrind ./imgclean_tests
 
   build-without-cimg:
+    name: Build and Test (+Valgrind) without CImg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install Dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install -y g++ libomp-dev
+            sudo apt-get install -y g++ libomp-dev valgrind
       - name: Install latest CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -61,4 +63,4 @@ jobs:
       - name: Run Tests
         run: |
             cd project/build
-            ctest
+            valgrind ./imgclean_tests
