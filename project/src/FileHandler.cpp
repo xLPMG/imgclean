@@ -55,7 +55,7 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 		const char* p   = buf.data();
 		const char* end = buf.data() + buf.size();
 
-		//! Helper to skip whitespace and comments
+		//! Helper function to skip whitespace and comments
 		auto skip_ws_and_comments = [](const char*& it, const char* it_end)
 		{
 			while (it < it_end)
@@ -75,17 +75,17 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 			}
 		};
 
-		//! Helper to parse an integer
+		//! Helper function to parse an integer
 		auto parse_int = [](const char*& it, const char* it_end, int& out_val) -> bool
 		{
 			std::from_chars_result res{nullptr, std::errc{}};
-			// Use from_chars on the remaining range
+			// parse base 10 integer from it to it_end
 			res = std::from_chars(it, it_end, out_val, 10);
-			if (res.ptr == it)
-			{
-				return false;
-			}
+			// no char was consumed/parsed
+			if (res.ptr == it) return false;
+			// move iterator forward
 			it = res.ptr;
+			// true if no error occurred
 			return res.ec == std::errc{};
 		};
 
