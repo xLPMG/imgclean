@@ -1,14 +1,12 @@
 #include "imgclean/FileHandler.hpp"
 
-#include <algorithm>
-#include <cctype>
-#include <charconv>
-#include <filesystem>
-#include <fstream>
-#include <vector>
-#include <cstring>
-#include <omp.h>
-#include <sstream>
+#include <algorithm>  // std::transform
+#include <cctype>     // std::tolower
+#include <charconv>   // std::from_chars, std::to_chars
+#include <cstring>    // std::memcpy
+#include <filesystem> // std::filesystem
+#include <fstream>    // std::ifstream, std::ofstream
+#include <vector>     // std::vector
 
 #ifdef CIMG_FOUND
 # define cimg_display 0 // we dont need to display images -> reduce dependencies
@@ -213,25 +211,36 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 		buf.resize(kBufCap);
 		size_t pos = 0;
 
-		//! Helper to flush buffer to file
-		auto flush = [&]() {
-			if (pos) { file.write(buf.data(), static_cast<std::streamsize>(pos)); pos = 0; }
+		//! Helper function to flush buffer to file
+		auto flush = [&]()
+		{
+			if (pos)
+			{
+				file.write(buf.data(), static_cast<std::streamsize>(pos));
+				pos = 0;
+			}
 		};
 
-		//! Helper to ensure there is enough space in buffer, flushing if necessary
-		auto ensure = [&](size_t need) {
+		//! Helper function to ensure there is enough space in buffer, flushing if necessary
+		auto ensure = [&](size_t need)
+		{
 			if (pos + need > buf.size()) flush();
 		};
 
-		//! Helpers to push data into buffer
-		auto push_char = [&](char c) {
+		//! Helper function to push data into buffer
+		auto push_char = [&](char c)
+		{
 			ensure(1);
 			buf[pos++] = c;
 		};
 
-		//! Helper to push multiple chars into buffer
-		auto push_chars = [&](const char* p, size_t n) {
-			if (n > buf.size()) { // extremely unlikely, but be safe
+		//! Helper function to push multiple chars into buffer
+		auto push_chars = [&](const char* p, size_t n)
+		{
+			// more chars than buffer size ->
+			// write directly, but that should not happen here anyway
+			if (n > buf.size())
+			{
 				flush();
 				file.write(p, static_cast<std::streamsize>(n));
 				return;
@@ -241,9 +250,11 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 			pos += n;
 		};
 
-		//! Helper to push an integer into buffer
-		auto push_int = [&](uint16_t v) {
+		//! Helper function to push an integer into buffer
+		auto push_int = [&](uint16_t v)
+		{
 			char tmp[6]; // max 5 digits for 65535 + NUL
+			// convert integer to chars without NUL termination
 			auto res = std::to_chars(tmp, tmp + sizeof(tmp), v, 10);
 			push_chars(tmp, static_cast<size_t>(res.ptr - tmp));
 		};
@@ -258,7 +269,7 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 		push_char('\n');
 
 		// Body: each pixel as "R G B\n"
-		const uint16_t* px = img.pixels.data();
+		const uint16_t* px       = img.pixels.data();
 		const size_t pixel_count = static_cast<size_t>(img.width) * static_cast<size_t>(img.height) * 3u;
 		for (size_t i = 0; i < pixel_count; i += 3)
 		{

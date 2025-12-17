@@ -125,6 +125,7 @@ int main(int argc, char** argv)
 	if (!imgclean::FileHandler::load_image(input_file, image))
 	{
 		std::cerr << "Error: Failed to load image from '" << input_path << "'\n";
+		std::cerr << "Hint: Ensure the file exists and has a valid file extension (.ppm, .png, .jpg, .jpeg)\n";
 		return EXIT_FAILURE;
 	}
 
