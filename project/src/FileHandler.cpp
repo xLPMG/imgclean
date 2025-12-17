@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
+#include <vector>
+#include <cstring>
 #include <omp.h>
 #include <sstream>
 
@@ -39,69 +42,101 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	// Handle PPM_ASCII (P3) format manually
 	if (src.format == ImageFormat::PPM_ASCII)
 	{
+		// get file size
+		const auto sz = std::filesystem::file_size(src.path);
+		if (sz == 0) return false;
+
+		// create buffer
+		std::string buf;
+		buf.resize(sz);
+
+		// read file into buffer
 		std::ifstream file(src.path, std::ios::binary);
-		if (!file) return false;
+		if (!file.read(buf.data(), sz)) return false;
 
-		// ppm header
-		std::string line;
-		size_t values_read = 0;
-		int header[3]      = {0, 0, 0}; // width, height, maxval
+		const char* p   = buf.data();
+		const char* end = buf.data() + buf.size();
 
-		std::getline(file, line);
-		if (line != "P3") return false; // first line must be P3
-		while (values_read < 3 && std::getline(file, line))
+		//! Helper to skip whitespace and comments
+		auto skip_ws_and_comments = [](const char*& it, const char* it_end)
 		{
-			if (line.empty() || line[0] == '#') continue;
-
-			const char* p = line.c_str();
-			char* end;
-
-			while (*p && values_read < 3)
+			while (it < it_end)
 			{
-				long v = std::strtol(p, &end, 10);
-				if (p == end) break;
-				header[values_read++] = static_cast<int>(v);
-				p                     = end;
+				// Skip whitespace
+				while (it < it_end && static_cast<unsigned char>(*it) <= ' ')
+					++it;
+				if (it >= it_end) break;
+				if (*it == '#')
+				{
+					// Skip comment until end-of-line
+					while (it < it_end && *it != '\n' && *it != '\r')
+						++it;
+					continue;
+				}
+				break;
 			}
-		}
+		};
 
-		if (values_read != 3)
+		//! Helper to parse an integer
+		auto parse_int = [](const char*& it, const char* it_end, int& out_val) -> bool
 		{
-			out.clear();
-			return false;
-		}
+			std::from_chars_result res{nullptr, std::errc{}};
+			// Use from_chars on the remaining range
+			res = std::from_chars(it, it_end, out_val, 10);
+			if (res.ptr == it)
+			{
+				return false;
+			}
+			it = res.ptr;
+			return res.ec == std::errc{};
+		};
 
-		out.width  = header[0];
-		out.height = header[1];
-		out.maxval = header[2];
+		// Parse magic number "P3"
+		skip_ws_and_comments(p, end);
+		if (p >= end || *p != 'P') return false;
+		++p;
+		if (p >= end || *p != '3') return false;
+		++p;
 
-		const size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3;
+		// Parse width, height, maxval
+		skip_ws_and_comments(p, end);
+		int header_w = 0;
+		if (!parse_int(p, end, header_w)) return false;
+
+		skip_ws_and_comments(p, end);
+		int header_h = 0;
+		if (!parse_int(p, end, header_h)) return false;
+
+		skip_ws_and_comments(p, end);
+		int header_max = 0;
+		if (!parse_int(p, end, header_max)) return false;
+
+		if (header_w <= 0 || header_h <= 0 || header_max <= 0) return false;
+
+		out.width  = header_w;
+		out.height = header_h;
+		out.maxval = header_max;
+
+		const size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3u;
 		out.pixels.resize(pixel_count);
 
-		// read pixel data
+		// Parse pixel data
 		size_t idx    = 0;
 		uint16_t* dst = out.pixels.data();
-		while (idx < pixel_count && std::getline(file, line))
+
+		while (idx < pixel_count)
 		{
-			if (line.empty() || line[0] == '#') continue;
+			skip_ws_and_comments(p, end);
+			if (p >= end) break;
 
-			const char* p = line.c_str();
-			char* end     = nullptr;
-
-			while (*p && idx < pixel_count)
+			int value = 0;
+			if (!parse_int(p, end, value)) break;
+			if (value < 0 || value > out.maxval || value > 65535)
 			{
-				long v = std::strtol(p, &end, 10);
-				if (p == end) break;
-
-				if (v < 0 || v > out.maxval)
-				{
-					out.clear();
-					return false;
-				}
-
-				dst[idx++] = static_cast<uint16_t>(v);
-				p          = end;
+				out.clear();
+				return false;
 			}
+			dst[idx++] = static_cast<uint16_t>(value);
 		}
 
 		if (idx != pixel_count)
@@ -118,9 +153,9 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	try
 	{
 		cimg_library::CImg<unsigned char> img(src.path.c_str());
-		out.width          = img.width();
-		out.height         = img.height();
-		out.maxval         = 255;
+		out.width                = img.width();
+		out.height               = img.height();
+		out.maxval               = 255;
 		const size_t pixel_count = static_cast<size_t>(out.width) * static_cast<size_t>(out.height) * 3u;
 		out.pixels.resize(pixel_count);
 
@@ -169,29 +204,73 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 	// Handle PPM_ASCII (P3) format manually
 	if (dst.format == ImageFormat::PPM_ASCII)
 	{
-		std::ofstream file(dst.path);
+		std::ofstream file(dst.path, std::ios::binary);
 		if (!file.is_open()) return false;
 
-		const size_t pixel_count = static_cast<size_t>(img.width) * img.height * 3;
+		// 1 MiB buffer
+		constexpr size_t kBufCap = 1u << 20;
+		std::vector<char> buf;
+		buf.resize(kBufCap);
+		size_t pos = 0;
 
-		std::string buffer;
-		buffer.reserve(1 << 20);
-		buffer += "P3\n";
-		buffer += std::to_string(img.width) + " " + std::to_string(img.height) + "\n";
-		buffer += std::to_string(img.maxval) + "\n";
-		for (size_t i = 0; i < pixel_count; ++i)
-		{
-			buffer += std::to_string(img.pixels[i]);
-			buffer += ((i + 1) % 3 == 0) ? '\n' : ' ';
-			if (buffer.size() > (1 << 19))
-			{
-				file.write(buffer.data(), buffer.size());
-				buffer.clear();
+		//! Helper to flush buffer to file
+		auto flush = [&]() {
+			if (pos) { file.write(buf.data(), static_cast<std::streamsize>(pos)); pos = 0; }
+		};
+
+		//! Helper to ensure there is enough space in buffer, flushing if necessary
+		auto ensure = [&](size_t need) {
+			if (pos + need > buf.size()) flush();
+		};
+
+		//! Helpers to push data into buffer
+		auto push_char = [&](char c) {
+			ensure(1);
+			buf[pos++] = c;
+		};
+
+		//! Helper to push multiple chars into buffer
+		auto push_chars = [&](const char* p, size_t n) {
+			if (n > buf.size()) { // extremely unlikely, but be safe
+				flush();
+				file.write(p, static_cast<std::streamsize>(n));
+				return;
 			}
+			if (pos + n > buf.size()) flush();
+			std::memcpy(buf.data() + pos, p, n);
+			pos += n;
+		};
+
+		//! Helper to push an integer into buffer
+		auto push_int = [&](uint16_t v) {
+			char tmp[6]; // max 5 digits for 65535 + NUL
+			auto res = std::to_chars(tmp, tmp + sizeof(tmp), v, 10);
+			push_chars(tmp, static_cast<size_t>(res.ptr - tmp));
+		};
+
+		// Header: P3\n<width> <height>\n<maxval>\n
+		push_chars("P3\n", 3);
+		push_int(static_cast<uint16_t>(img.width));
+		push_char(' ');
+		push_int(static_cast<uint16_t>(img.height));
+		push_char('\n');
+		push_int(static_cast<uint16_t>(img.maxval));
+		push_char('\n');
+
+		// Body: each pixel as "R G B\n"
+		const uint16_t* px = img.pixels.data();
+		const size_t pixel_count = static_cast<size_t>(img.width) * static_cast<size_t>(img.height) * 3u;
+		for (size_t i = 0; i < pixel_count; i += 3)
+		{
+			push_int(px[i + 0]);
+			push_char(' ');
+			push_int(px[i + 1]);
+			push_char(' ');
+			push_int(px[i + 2]);
+			push_char('\n');
 		}
 
-		if (!buffer.empty()) file.write(buffer.data(), buffer.size());
-
+		flush();
 		return file.good();
 	}
 
