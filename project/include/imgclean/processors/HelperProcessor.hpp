@@ -17,6 +17,7 @@ public:
 		GSImage gray_image;
 		gray_image.width  = image.width;
 		gray_image.height = image.height;
+		gray_image.exif_data = image.exif_data; // preserve EXIF data
 		gray_image.pixels.resize(image.width * image.height);
 
 		uint16_t max_gray = 0;
@@ -51,6 +52,7 @@ public:
 		rgb_image.width  = gray_image.width;
 		rgb_image.height = gray_image.height;
 		rgb_image.maxval = gray_image.maxval;
+		rgb_image.exif_data = gray_image.exif_data; // preserve EXIF data
 		rgb_image.pixels.resize(gray_image.width * gray_image.height * 3);
 
 		for (int i = 0; i < gray_image.width * gray_image.height; ++i)

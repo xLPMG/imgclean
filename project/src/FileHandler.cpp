@@ -8,8 +8,6 @@
 #include <fstream>    // std::ifstream, std::ofstream
 #include <vector>     // std::vector
 
-#include <iostream>
-
 #ifdef CIMG_FOUND
 # define cimg_display 0 // we dont need to display images -> reduce dependencies
 # include <CImg.h>
@@ -349,7 +347,7 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 		if (dst.format == ImageFormat::JPG && !img.exif_data.empty())
 		{
 			// Save image to temp file first
-			std::string tmp_path = dst.path + ".tmp";
+			std::string tmp_path = dst.path + ".tmp.jpg";
 			cimg.save(tmp_path.c_str());
 
 			// Read temp file
