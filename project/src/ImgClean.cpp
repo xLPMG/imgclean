@@ -3,6 +3,8 @@
 #include "imgclean/FileHandler.hpp"
 #include "imgclean/ImageFormat.hpp"
 #include "imgclean/PPMImage.hpp"
+#include <imgclean/processors/HelperProcessor.hpp>
+#include <imgclean/processors/IntegralImageProcessor.hpp>
 #include <iostream>
 #include <string>
 
@@ -63,6 +65,13 @@ bool ImgClean::clean_image(const std::string& input_path, const std::string& out
 	/////////////////////////////////////////////////////////////////////////
 	///// IMAGE PROCESSING
 	/////////////////////////////////////////////////////////////////////////
+
+	// Convert to grayscale
+	imgclean::GSImage gray_image = imgclean::processors::HelperProcessor::rgb_to_linear_grayscale(image);
+	// Apply integral image processor
+	gray_image = imgclean::processors::IntegralImageProcessor::apply(gray_image);
+	// Convert back to RGB
+	image = imgclean::processors::HelperProcessor::grayscale_to_rgb(gray_image);
 
 	/////////////////////////////////////////////////////////////////////////
 	///// SAVE OUTPUT IMAGE
