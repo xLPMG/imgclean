@@ -31,6 +31,7 @@ GSImage IntegralImageProcessor::apply(const GSImage& image)
 	output_image.width  = image.width;
 	output_image.height = image.height;
 	output_image.maxval = image.maxval;
+	output_image.exif_data = image.exif_data;
 	output_image.pixels.resize(image.width * image.height);
 
 	for (int i = 0; i < image.width; ++i)
