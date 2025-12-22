@@ -182,7 +182,6 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 		// If JPG, extract EXIF into out.exif_data
 		if (src.format == ImageFormat::JPG)
 		{
-			std::cout << "Extracting EXIF data from " << src.path << "...\n";
 			std::ifstream file(src.path, std::ios::binary);
 			if (file)
 			{
@@ -208,26 +207,8 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 					}
 				}
 			}
-			for (size_t i = 0; i + 1 < out.exif_data.size(); ++i)
-			{
-				// Look for "DateTime" tag (0x0132)
-				if (out.exif_data[i] == 0x01 && out.exif_data[i + 1] == 0x32)
-				{
-					// Extract ASCII string
-					size_t str_start = i + 4; // skip tag and type/length
-					size_t str_end   = str_start;
-					while (str_end < out.exif_data.size() && out.exif_data[str_end] != 0)
-					{
-						++str_end;
-					}
-					std::string datetime(reinterpret_cast<const char*>(&out.exif_data[str_start]),
-					                     str_end - str_start);
-					std::cout << "Image DateTime (EXIF): " << datetime << "\n";
-					break;
-				}
-			}
 		}
-# endif
+# endif // EXIF_FOUND
 
 		return true;
 	}
@@ -237,7 +218,7 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	}
 #else
 	return false;
-#endif
+#endif // CIMG_FOUND
 }
 
 bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
