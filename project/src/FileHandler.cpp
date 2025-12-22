@@ -8,9 +8,16 @@
 #include <fstream>    // std::ifstream, std::ofstream
 #include <vector>     // std::vector
 
+#include <iostream>
+
 #ifdef CIMG_FOUND
 # define cimg_display 0 // we dont need to display images -> reduce dependencies
 # include <CImg.h>
+#endif
+
+#ifdef EXIF_FOUND
+# include <libexif/exif-data.h>
+# include <libexif/exif-loader.h>
 #endif
 
 namespace imgclean
@@ -171,6 +178,57 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 			}
 		}
 
+# ifdef EXIF_FOUND
+		// If JPG, extract EXIF into out.exif_data
+		if (src.format == ImageFormat::JPG)
+		{
+			std::cout << "Extracting EXIF data from " << src.path << "...\n";
+			std::ifstream file(src.path, std::ios::binary);
+			if (file)
+			{
+				file.seekg(0, std::ios::end);
+				std::streamsize size = file.tellg();
+				file.seekg(0, std::ios::beg);
+				std::vector<unsigned char> buffer(size);
+				if (file.read(reinterpret_cast<char*>(buffer.data()), size))
+				{
+					ExifData* ed = exif_data_new_from_data(buffer.data(), buffer.size());
+					if (ed)
+					{
+						// Save the EXIF segment (APP1)
+						unsigned char* exif_buf = nullptr;
+						unsigned int exif_len   = 0;
+						exif_data_save_data(ed, &exif_buf, &exif_len);
+						if (exif_buf && exif_len > 0)
+						{
+							out.exif_data.assign(exif_buf, exif_buf + exif_len);
+							free(exif_buf);
+						}
+						exif_data_unref(ed);
+					}
+				}
+			}
+			for (size_t i = 0; i + 1 < out.exif_data.size(); ++i)
+			{
+				// Look for "DateTime" tag (0x0132)
+				if (out.exif_data[i] == 0x01 && out.exif_data[i + 1] == 0x32)
+				{
+					// Extract ASCII string
+					size_t str_start = i + 4; // skip tag and type/length
+					size_t str_end   = str_start;
+					while (str_end < out.exif_data.size() && out.exif_data[str_end] != 0)
+					{
+						++str_end;
+					}
+					std::string datetime(reinterpret_cast<const char*>(&out.exif_data[str_start]),
+					                     str_end - str_start);
+					std::cout << "Image DateTime (EXIF): " << datetime << "\n";
+					break;
+				}
+			}
+		}
+# endif
+
 		return true;
 	}
 	catch (const cimg_library::CImgException&)
@@ -305,8 +363,49 @@ bool FileHandler::save_image(const FilePath& dst, const PPMImage& img)
 			}
 		}
 
+# ifdef EXIF_FOUND
+		// If JPG and exif_data present in img, inject EXIF
+		if (dst.format == ImageFormat::JPG && !img.exif_data.empty())
+		{
+			// Save image to temp file first
+			std::string tmp_path = dst.path + ".tmp";
+			cimg.save(tmp_path.c_str());
+
+			// Read temp file
+			std::ifstream in(tmp_path, std::ios::binary);
+			std::ofstream out(dst.path, std::ios::binary);
+			if (in && out)
+			{
+				// Write SOI marker
+				unsigned char marker[2];
+				in.read(reinterpret_cast<char*>(marker), 2);
+				out.write(reinterpret_cast<char*>(marker), 2);
+				// Write EXIF segment
+				out.put(0xFF);
+				out.put(0xE1); // APP1 marker
+				uint16_t exif_len = static_cast<uint16_t>(img.exif_data.size() + 2);
+				out.put((exif_len >> 8) & 0xFF);
+				out.put(exif_len & 0xFF);
+				out.write(reinterpret_cast<const char*>(img.exif_data.data()), img.exif_data.size());
+				// Copy rest of file
+				out << in.rdbuf();
+			}
+			in.close();
+			out.close();
+			std::filesystem::remove(tmp_path);
+			return true;
+		}
+		else
+		{
+			// No EXIF data, just save
+			cimg.save(dst.path.c_str());
+			return true;
+		}
+# else
+		// No EXIF support, just save
 		cimg.save(dst.path.c_str());
 		return true;
+# endif
 	}
 	catch (const cimg_library::CImgException&)
 	{

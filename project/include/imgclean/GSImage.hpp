@@ -14,11 +14,13 @@ struct GSImage
 	int height = 0;
 	int maxval = 255;
 	std::vector<uint8_t> pixels; // size = width * height
+	std::vector<unsigned char> exif_data; // EXIF segment for JPG
 
 	bool empty() const { return width <= 0 || height <= 0 || pixels.empty(); }
 	void clear()
 	{
 		pixels.clear();
+		exif_data.clear();
 		width  = 0;
 		height = 0;
 		maxval = 255;

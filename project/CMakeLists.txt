@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 ###############################################################################
 ## build options ###############################################################
 ###############################################################################
@@ -99,13 +101,14 @@ else()
     message(WARNING "CImg not found - only PPM_ASCII format will be supported")
 endif()
 
-# Optional PNG + JPEG
+# Optional PNG + JPEG + EXIF support
 find_package(PNG QUIET)
 find_package(JPEG QUIET)
+find_package(EXIF QUIET)
 
 if (PNG_FOUND)
     message(STATUS "Found PNG: ${PNG_LIBRARIES}")
-    target_compile_definitions(imgclean_lib PUBLIC cimg_use_png)
+    target_compile_definitions(imgclean_lib PUBLIC PNG_FOUND)
     target_link_libraries(imgclean_lib PUBLIC PNG::PNG)
 else()
     message(STATUS "PNG not found - PNG support disabled")
@@ -113,10 +116,18 @@ endif()
 
 if (JPEG_FOUND)
     message(STATUS "Found JPEG: ${JPEG_LIBRARIES}")
-    target_compile_definitions(imgclean_lib PUBLIC cimg_use_jpeg)
+    target_compile_definitions(imgclean_lib PUBLIC JPEG_FOUND)
     target_link_libraries(imgclean_lib PUBLIC JPEG::JPEG)
 else()
     message(STATUS "JPEG not found - JPEG support disabled")
+endif()
+
+if (EXIF_FOUND)
+    message(STATUS "Found EXIF: ${EXIF_LIBRARIES}")
+    target_compile_definitions(imgclean_lib PUBLIC EXIF_FOUND)
+    target_link_libraries(imgclean_lib PUBLIC ${EXIF_LIBRARIES})
+else()
+    message(STATUS "EXIF not found - EXIF support disabled")
 endif()
 
 ###############################################################################

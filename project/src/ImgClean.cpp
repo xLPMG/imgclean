@@ -15,7 +15,7 @@ bool ImgClean::check_format_support(const imgclean::ImageFormat& format, const s
 {
 	if (format == imgclean::ImageFormat::PNG)
 	{
-#ifndef cimg_use_png
+#ifndef PNG_FOUND
 		std::cerr << "Error: PNG format not supported (libpng not found during build)\n";
 		std::cerr << "File: " << path << "\n";
 		return false;
@@ -23,7 +23,7 @@ bool ImgClean::check_format_support(const imgclean::ImageFormat& format, const s
 	}
 	else if (format == imgclean::ImageFormat::JPG)
 	{
-#ifndef cimg_use_jpeg
+#ifndef JPEG_FOUND
 		std::cerr << "Error: JPEG format not supported (libjpeg not found during build)\n";
 		std::cerr << "File: " << path << "\n";
 		return false;
