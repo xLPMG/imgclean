@@ -77,7 +77,10 @@ int main(int argc, char** argv)
 	auto start_time = std::chrono::high_resolution_clock::now();
 #endif
 
-	bool success = imgclean::ImgClean::clean_image(input_path, output_path);
+	// TODO: as io parameter
+	// integral or adaptive
+	std::string approach = "adaptive";
+	bool success = imgclean::ImgClean::clean_image(input_path, output_path, approach);
 	if (!success)
 	{
 		std::cerr << "Error: Image cleaning failed\n";

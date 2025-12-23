@@ -3,8 +3,9 @@
 #include "imgclean/FileHandler.hpp"
 #include "imgclean/ImageFormat.hpp"
 #include "imgclean/PPMImage.hpp"
+#include "imgclean/processors/ImageBinarizationProcessor.hpp"
+#include "imgclean/processors/IntegralImageProcessor.hpp"
 #include <imgclean/processors/HelperProcessor.hpp>
-#include <imgclean/processors/IntegralImageProcessor.hpp>
 #include <iostream>
 #include <string>
 
@@ -43,7 +44,7 @@ bool ImgClean::check_format_support(const imgclean::ImageFormat& format, const s
 	return true;
 }
 
-bool ImgClean::clean_image(const std::string& input_path, const std::string& output_path)
+bool ImgClean::clean_image(const std::string& input_path, const std::string& output_path, const std::string& approach)
 {
 	/////////////////////////////////////////////////////////////////////////
 	///// LOAD INPUT IMAGE
@@ -68,8 +69,17 @@ bool ImgClean::clean_image(const std::string& input_path, const std::string& out
 
 	// Convert to grayscale
 	imgclean::GSImage gray_image = imgclean::processors::HelperProcessor::rgb_to_linear_grayscale(image);
+
 	// Apply integral image processor
-	gray_image = imgclean::processors::IntegralImageProcessor::apply(gray_image);
+	if (approach == "integral")
+	{
+		gray_image = imgclean::processors::IntegralImageProcessor::apply(gray_image);
+	}
+	else if (approach == "adaptive")
+	{
+		gray_image = imgclean::processors::ImageBinarizationProcessor::apply(gray_image);
+	}
+
 	// Convert back to RGB
 	image = imgclean::processors::HelperProcessor::grayscale_to_rgb(gray_image);
 
