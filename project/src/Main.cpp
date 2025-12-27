@@ -10,10 +10,11 @@
 //! Print usage information
 void print_usage(const char* program_name)
 {
-	std::cerr << "Usage: " << program_name << " -i <input> -o <output>\n";
+	std::cerr << "Usage: " << program_name << " -i <input> -o <output> [-a <approach>]\n";
 	std::cerr << "Options:\n";
-	std::cerr << "  -i, --input <file>   Input image file\n";
-	std::cerr << "  -o, --output <file>  Output image file\n";
+	std::cerr << "  -i, --input <file>      Input image file\n";
+	std::cerr << "  -o, --output <file>     Output image file\n";
+	std::cerr << "  -a, --approach <type>   Cleaning approach: 'integral' or 'adaptive' (default: adaptive)\n";
 }
 
 int main(int argc, char** argv)
@@ -23,6 +24,7 @@ int main(int argc, char** argv)
 	/////////////////////////////////////////////////////////////////////////
 	std::string input_path;
 	std::string output_path;
+	std::string approach = "adaptive";
 
 	// Parse command line arguments
 	for (int i = 1; i < argc; ++i)
@@ -55,6 +57,29 @@ int main(int argc, char** argv)
 				return EXIT_FAILURE;
 			}
 		}
+		else if (arg == "-a" || arg == "--approach")
+		{
+			if (i + 1 < argc)
+			{
+				std::string value = argv[++i];
+				if (value == "integral" || value == "adaptive")
+				{
+					approach = value;
+				}
+				else
+				{
+					std::cerr << "Error: --approach must be 'integral' or 'adaptive'\n";
+					print_usage(argv[0]);
+					return EXIT_FAILURE;
+				}
+			}
+			else
+			{
+				std::cerr << "Error: --approach requires a value ('integral' or 'adaptive')\n";
+				print_usage(argv[0]);
+				return EXIT_FAILURE;
+			}
+		}
 		else
 		{
 			std::cerr << "Error: Unknown option '" << arg << "'\n";
@@ -77,9 +102,6 @@ int main(int argc, char** argv)
 	auto start_time = std::chrono::high_resolution_clock::now();
 #endif
 
-	// TODO: as io parameter
-	// integral or adaptive
-	std::string approach = "adaptive";
 	bool success = imgclean::ImgClean::clean_image(input_path, output_path, approach);
 	if (!success)
 	{
