@@ -49,6 +49,12 @@ message("--------------------------------------------------")
 add_library(imgclean_lib STATIC ${sources})
 target_include_directories(imgclean_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:-O3 -march=native>)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:/O2>)
+endif()
+
 # Standalone CLI executable
 add_executable(imgclean src/Main.cpp)
 target_link_libraries(imgclean PRIVATE imgclean_lib)
