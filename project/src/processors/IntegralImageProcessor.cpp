@@ -7,50 +7,58 @@ namespace imgclean
 {
 namespace processors
 {
+/**
+ * @brief Applies integral image based binarization to the input grayscale image.
+ */
 GSImage IntegralImageProcessor::apply(const GSImage& image)
 {
+	// Note: This implementation seems to be so fast already, that using any OpenMP pragmas
+	// on the for-loops actually made it slower.
 	if (image.empty()) return GSImage();
 
-	// compute the integral image
-	std::vector<uint32_t> integral(image.width * image.height, 0);
-	for (int y = 0; y < image.height; ++y)
-	{
-		for (int x = 0; x < image.width; ++x)
-		{
-			int idx             = y * image.width + x;
-			uint32_t left       = (x > 0) ? integral[y * image.width + (x - 1)] : 0;
-			uint32_t above      = (y > 0) ? integral[(y - 1) * image.width + x] : 0;
-			uint32_t above_left = (y > 0 && x > 0) ? integral[(y - 1) * image.width + (x - 1)] : 0;
+	const int image_width  = image.width;
+	const int image_height = image.height;
 
-			integral[y * image.width + x] = static_cast<uint32_t>(image.pixels[idx]) + left + above -
+	// compute the integral image
+	std::vector<uint32_t> integral(image_width * image_height, 0);
+
+	for (int y = 0; y < image_height; ++y)
+	{
+		for (int x = 0; x < image_width; ++x)
+		{
+			const size_t index        = y * image_width + x;
+			const uint32_t left       = (x > 0) ? integral[y * image_width + (x - 1)] : 0;
+			const uint32_t above      = (y > 0) ? integral[(y - 1) * image_width + x] : 0;
+			const uint32_t above_left = (y > 0 && x > 0) ? integral[(y - 1) * image_width + (x - 1)] : 0;
+
+			integral[y * image_width + x] = static_cast<uint32_t>(image.pixels[index]) + left + above -
 			                                above_left;
 		}
 	}
 
 	GSImage output_image;
-	output_image.width  = image.width;
-	output_image.height = image.height;
-	output_image.maxval = image.maxval;
+	output_image.width     = image_width;
+	output_image.height    = image_height;
+	output_image.maxval    = image.maxval;
 	output_image.exif_data = image.exif_data;
-	output_image.pixels.resize(image.width * image.height);
+	output_image.pixels.resize(image_width * image_height);
 
-	for (int i = 0; i < image.width; ++i)
+	for (int j = 0; j < image_height; ++j)
 	{
-		for (int j = 0; j < image.height; ++j)
+		for (int i = 0; i < image_width; ++i)
 		{
-			int x1     = std::max(0, i - half_window);
-			int y1     = std::max(0, j - half_window);
-			int x2     = std::min(image.width - 1, i + half_window);
-			int y2     = std::min(image.height - 1, j + half_window);
-			int count  = (x2 - x1 + 1) * (y2 - y1 + 1);
-			uint32_t A = integral[y2 * image.width + x2];
-			uint32_t B = (y1 > 0) ? integral[(y1 - 1) * image.width + x2] : 0;
-			uint32_t C = (x1 > 0) ? integral[y2 * image.width + (x1 - 1)] : 0;
-			uint32_t D = (y1 > 0 && x1 > 0) ? integral[(y1 - 1) * image.width + (x1 - 1)] : 0;
+			const int x1     = std::max(0, i - half_window);
+			const int y1     = std::max(0, j - half_window);
+			const int x2     = std::min(image_width - 1, i + half_window);
+			const int y2     = std::min(image_height - 1, j + half_window);
+			const int count  = (x2 - x1 + 1) * (y2 - y1 + 1);
+			const uint32_t A = integral[y2 * image_width + x2];
+			const uint32_t B = (y1 > 0) ? integral[(y1 - 1) * image_width + x2] : 0;
+			const uint32_t C = (x1 > 0) ? integral[y2 * image_width + (x1 - 1)] : 0;
+			const uint32_t D = (y1 > 0 && x1 > 0) ? integral[(y1 - 1) * image_width + (x1 - 1)] : 0;
 
-			float local_mean = static_cast<float>(A - B - C + D) / count;
-			float pixel_val  = static_cast<float>(image.pixels[j * image.width + i]);
-
+			const float local_mean = static_cast<float>(A - B - C + D) / count;
+			const float pixel_val  = static_cast<float>(image.pixels[j * image_width + i]);
 			output_image.pixels[j * image.width + i] = (pixel_val < t * local_mean) ? 0 : 255;
 		}
 	}
