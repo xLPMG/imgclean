@@ -25,10 +25,10 @@ GSImage ImageBinarizationProcessor::apply(const GSImage& image)
 	{
 		for (int i = 0; i < width; ++i)
 		{
-			int x1 = std::max(0, i - half_window);
-			int y1 = std::max(0, j - half_window);
-			int x2 = std::min(width - 1, i + half_window);
-			int y2 = std::min(height - 1, j + half_window);
+			const int x1 = std::max(0, i - half_window);
+			const int y1 = std::max(0, j - half_window);
+			const int x2 = std::min(width - 1, i + half_window);
+			const int y2 = std::min(height - 1, j + half_window);
 
 			float tmp_acc = 0;
 			for (int y = y1; y <= y2; ++y)
@@ -38,7 +38,7 @@ GSImage ImageBinarizationProcessor::apply(const GSImage& image)
 					tmp_acc += pixels[y * width + x];
 				}
 			}
-			float cur_mean              = tmp_acc / ((x2 - x1 + 1) * (y2 - y1 + 1));
+			const float cur_mean        = tmp_acc / ((x2 - x1 + 1) * (y2 - y1 + 1));
 			windows_mean[j * width + i] = cur_mean;
 
 			float cur_stddev = 0.0;
@@ -52,16 +52,8 @@ GSImage ImageBinarizationProcessor::apply(const GSImage& image)
 			}
 
 			cur_stddev = std::sqrt(cur_stddev / ((x2 - x1 + 1) * (y2 - y1 + 1)));
-
-			if (cur_stddev > w_max_stddev)
-			{
-				w_max_stddev = cur_stddev;
-			}
-
-			if (cur_stddev < w_min_stddev)
-			{
-				w_min_stddev = cur_stddev;
-			}
+			w_max_stddev = std::max(w_max_stddev, cur_stddev);
+			w_min_stddev = std::min(w_min_stddev, cur_stddev);
 
 			windows_stddev[j * width + i] = cur_stddev;
 		}
@@ -84,20 +76,21 @@ GSImage ImageBinarizationProcessor::apply(const GSImage& image)
 	{
 		for (int i = 0; i < width; ++i)
 		{
-			const size_t index        = j * width + i;
-			const float current_value = windows_stddev[index];
+			const size_t index         = j * width + i;
+			const float current_stddev = windows_stddev[index];
+			const float current_mean   = windows_mean[index];
 
 			// adaptive_stddev
 			float adaptive_stddev = 0.0;
 			if (w_max_stddev > w_min_stddev)
 			{
-				adaptive_stddev = (current_value - w_min_stddev) / (w_max_stddev - w_min_stddev);
+				adaptive_stddev = (current_stddev - w_min_stddev) / (w_max_stddev - w_min_stddev);
 			}
 
 			// threshold calculation
-			float threshold = current_value -
-			                  (windows_mean[index] * windows_mean[index] - current_value) /
-			                          ((global_mean + current_value) * (adaptive_stddev + current_value));
+			float threshold = current_mean -
+			                  (current_mean * current_mean - current_stddev) /
+			                          ((global_mean + current_stddev) * (adaptive_stddev + current_stddev));
 
 			// binarization
 			output_image.pixels[index] = (pixels[index] < threshold) ? 0 : 255;
