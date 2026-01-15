@@ -26,6 +26,9 @@ file(GLOB_RECURSE sources src/*.cpp include/imgclean/*.h)
 file(GLOB_RECURSE tests   test/*.cpp)
 file(GLOB_RECURSE data    res/*)
 
+# Exclude macOS finder metadata files
+list(FILTER data EXCLUDE REGEX ".*/\\.DS_Store$")
+
 # Exclude main files from library sources
 list(FILTER sources EXCLUDE REGEX ".*[Mm]ain.*\\.cpp$")
 list(FILTER tests   EXCLUDE REGEX ".*[Mm]ain.*\\.cpp$")
@@ -49,30 +52,46 @@ message("--------------------------------------------------")
 add_library(imgclean_lib STATIC ${sources})
 target_include_directories(imgclean_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:-O3 -march=native>)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:/O2>)
-endif()
+# Precompiled headers (PCH)
+target_precompile_headers(imgclean_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/imgclean/pch.hpp)
 
 # Standalone CLI executable
 add_executable(imgclean src/Main.cpp)
 target_link_libraries(imgclean PRIVATE imgclean_lib)
+target_precompile_headers(imgclean REUSE_FROM imgclean_lib)
 
 # Tests
 if (IS_TESTING_BUILD)
     add_executable(imgclean_tests test/Main.cpp ${tests})
     target_link_libraries(imgclean_tests PRIVATE imgclean_lib)
-endif()
-
-# Compile-time flags shared by CLI and tests
-if (MEASURE_PERFORMANCE)
-    target_compile_definitions(imgclean_lib PUBLIC MEASURE_PERFORMANCE)
+    target_precompile_headers(imgclean_tests REUSE_FROM imgclean_lib)
 endif()
 
 if (IS_TESTING_BUILD)
     enable_testing()
     add_test(NAME imgclean_tests COMMAND imgclean_tests)
+endif()
+
+# Compiler flags
+# We set the same flags for the standalone executable and tests as well, 
+# to ensure that the PCH can be used across all targets.
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:-O3 -march=native>)
+    target_compile_options(imgclean PRIVATE $<$<CONFIG:Release>:-O3 -march=native>)
+    if (IS_TESTING_BUILD)
+        target_compile_options(imgclean_tests PRIVATE $<$<CONFIG:Release>:-O3 -march=native>)
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(imgclean_lib PRIVATE $<$<CONFIG:Release>:/O2>)
+    target_compile_options(imgclean PRIVATE $<$<CONFIG:Release>:/O2>)
+    if (IS_TESTING_BUILD)
+        target_compile_options(imgclean_tests PRIVATE $<$<CONFIG:Release>:/O2>)
+    endif()
+endif()
+
+# Additional settings
+if (MEASURE_PERFORMANCE)
+    target_compile_definitions(imgclean_lib PUBLIC MEASURE_PERFORMANCE)
 endif()
 
 # Copy resource files near executable
