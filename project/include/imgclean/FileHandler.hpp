@@ -5,7 +5,6 @@
 #include "imgclean/ImageFormat.hpp"
 #include "imgclean/PPMImage.hpp"
 #include <string>
-#include <vector>
 
 namespace imgclean
 {

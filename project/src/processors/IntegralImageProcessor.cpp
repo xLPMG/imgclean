@@ -1,7 +1,7 @@
 #include "imgclean/processors/IntegralImageProcessor.hpp"
 
-#include <cstdio>
 #include <vector>
+#include <algorithm> // std::max, std::min
 
 namespace imgclean
 {

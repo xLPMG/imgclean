@@ -1,11 +1,12 @@
 #ifndef IMGCLEAN_HPP
 #define IMGCLEAN_HPP
 
-#include "ImageFormat.hpp"
 #include <string>
 
 namespace imgclean
 {
+
+enum class ImageFormat;
 
 class ImgClean
 {
