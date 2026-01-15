@@ -1,7 +1,6 @@
 #include "catch.hpp"
 
 #include "imgclean/FileHandler.hpp"
-#include <string>
 
 #ifdef CIMG_FOUND
 # define cimg_display 0 // we dont need to display images -> reduce dependencies
