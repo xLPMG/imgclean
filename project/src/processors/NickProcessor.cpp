@@ -71,10 +71,9 @@ GSImage NickProcessor::apply(const GSImage& image)
 			};
 
 			// Calculate mean (m) and standard deviation (s)
-			const float mean      = static_cast<float>(get_area_sum(sum_table) / area);
-			const float mean_squared      = static_cast<float>(get_area_sum(sq_sum_table) / area);
-			const float nick_term = std::sqrt(
-				std::max(0.0f, mean_squared - (mean * mean) / area));
+			const float mean         = static_cast<float>(get_area_sum(sum_table) / area);
+			const float mean_squared = static_cast<float>(get_area_sum(sq_sum_table) / area);
+			const float nick_term    = std::sqrt(std::max(0.0f, mean_squared - (mean * mean) / area));
 
 			// Nick Threshold
 			const float threshold = mean + (k * nick_term);

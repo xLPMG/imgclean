@@ -4,7 +4,7 @@
 namespace imgclean::processors
 {
 /**
- * @brief Applies Sauvola thresholding: T = m * (1 + k * (1 - σ / R) to an image.
+ * @brief Applies Sauvola thresholding: T = m * (1 + k * (1 - σ / R)) to an image.
  */
 GSImage SauvolaProcessor::apply(const GSImage& image)
 {

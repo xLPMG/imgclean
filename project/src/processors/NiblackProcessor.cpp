@@ -21,7 +21,7 @@ GSImage NiblackProcessor::apply(const GSImage& image)
 
 	for (int j = 0; j < image_height; ++j)
 	{
-		uint32_t row_sum = 0;
+		uint32_t row_sum       = 0;
 		double row_squared_sum = 0;
 		for (int i = 0; i < image_width; ++i)
 		{
@@ -32,12 +32,12 @@ GSImage NiblackProcessor::apply(const GSImage& image)
 
 			if (j == 0)
 			{
-				sum_table[idx]   = row_sum;
+				sum_table[idx]    = row_sum;
 				sq_sum_table[idx] = row_squared_sum;
 			}
 			else
 			{
-				sum_table[idx]   = row_sum + sum_table[(j - 1) * image_width + i];
+				sum_table[idx]    = row_sum + sum_table[(j - 1) * image_width + i];
 				sq_sum_table[idx] = row_squared_sum + sq_sum_table[(j - 1) * image_width + i];
 			}
 		}
@@ -71,9 +71,9 @@ GSImage NiblackProcessor::apply(const GSImage& image)
 			};
 
 			// Calculate mean (m) and standard deviation (s)
-			const float mean   = static_cast<float>(get_area_sum(sum_table) / area);
+			const float mean         = static_cast<float>(get_area_sum(sum_table) / area);
 			const float mean_squared = static_cast<float>(get_area_sum(sq_sum_table) / area);
-			const float stddev   = std::sqrt(std::max(0.0f, mean_squared - (mean * mean)));
+			const float stddev       = std::sqrt(std::max(0.0f, mean_squared - (mean * mean)));
 
 			// Niblack Threshold
 			const float threshold = mean + (k * stddev);
