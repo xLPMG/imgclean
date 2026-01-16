@@ -1,99 +1,101 @@
 #include "imgclean/processors/ImageBinarizationProcessor.hpp"
 
 #include <cmath>
-#include <limits>
-#include <numeric>
 
 namespace imgclean::processors
 {
 
 GSImage ImageBinarizationProcessor::apply(const GSImage& image)
 {
-	if (image.empty()) return GSImage();
+	if (image.empty()) return {};
 
-	const int width             = image.width;
-	const int height            = image.height;
-	const size_t num_pixels     = image.pixels.size();
-	const unsigned char* pixels = image.pixels.data();
+	const int width              = image.width;
+	const int height             = image.height;
+	const std::size_t num_pixels = image.pixels.size();
+	const unsigned char* pixels  = image.pixels.data();
 
-	std::vector<float> windows_mean(num_pixels);
-	std::vector<float> windows_stddev(num_pixels);
-	float w_min_stddev = std::numeric_limits<float>::max();
-	float w_max_stddev = std::numeric_limits<float>::min();
+	// 1. Pre-calculate Integral Images once (Linear scan)
+	// We use uint32 and float to keep these as slim as possible
+	std::vector<uint32_t> intSum(num_pixels);
+	std::vector<float> intSqSum(num_pixels);
 
 	for (int j = 0; j < height; ++j)
 	{
+		uint32_t rowSum              = 0;
+		float rowSqSum               = 0.0f;
+		const std::size_t row_offset = static_cast<std::size_t>(j) * width;
 		for (int i = 0; i < width; ++i)
 		{
-			const int x1 = std::max(0, i - half_window);
-			const int y1 = std::max(0, j - half_window);
-			const int x2 = std::min(width - 1, i + half_window);
-			const int y2 = std::min(height - 1, j + half_window);
-
-			float tmp_acc = 0;
-			for (int y = y1; y <= y2; ++y)
-			{
-				for (int x = x1; x <= x2; ++x)
-				{
-					tmp_acc += pixels[y * width + x];
-				}
-			}
-			const float cur_mean        = tmp_acc / ((x2 - x1 + 1) * (y2 - y1 + 1));
-			windows_mean[j * width + i] = cur_mean;
-
-			float cur_stddev = 0.0;
-			for (int y = y1; y <= y2; ++y)
-			{
-				for (int x = x1; x <= x2; ++x)
-				{
-					float diff = pixels[y * width + x] - cur_mean;
-					cur_stddev += diff * diff;
-				}
-			}
-
-			cur_stddev = std::sqrt(cur_stddev / ((x2 - x1 + 1) * (y2 - y1 + 1)));
-			w_max_stddev = std::max(w_max_stddev, cur_stddev);
-			w_min_stddev = std::min(w_min_stddev, cur_stddev);
-
-			windows_stddev[j * width + i] = cur_stddev;
+			const std::size_t idx = row_offset + i;
+			const auto val        = static_cast<float>(pixels[idx]);
+			rowSum += static_cast<uint32_t>(val);
+			rowSqSum += val * val;
+			intSum[idx]   = (j == 0) ? rowSum : rowSum + intSum[idx - width];
+			intSqSum[idx] = (j == 0) ? rowSqSum : rowSqSum + intSqSum[idx - width];
 		}
 	}
 
-	// at this point: g_mean, w_min;max_stddev
+	const float global_mean = static_cast<float>(intSum.back()) / num_pixels;
 
-	// prepare output
-	GSImage output_image;
-	output_image.width     = width;
-	output_image.height    = height;
-	output_image.maxval    = image.maxval;
-	output_image.exif_data = image.exif_data;
+	// 2. Fast Global Min/Max StdDev (Sub-sampled to stay in Cache)
+	float w_min_stddev = 1000.0f;
+	float w_max_stddev = 0.0f;
+
+// #pragma omp parallel for reduction(min : w_min_stddev) reduction(max : w_max_stddev)
+	for (int j = 0; j < height; j += 4)
+	{
+		for (int i = 0; i < width; i += 4)
+		{
+			int x1 = std::max(0, i - half_window), x2 = std::min(width - 1, i + half_window);
+			int y1 = std::max(0, j - half_window), y2 = std::min(height - 1, j + half_window);
+			const auto area = static_cast<float>((x2 - x1 + 1) * (y2 - y1 + 1));
+
+			auto get_v = [&](const auto& t)
+			{
+				double res = t[y2 * width + x2];
+				if (x1 > 0) res -= t[y2 * width + (x1 - 1)];
+				if (y1 > 0) res -= t[(y1 - 1) * width + x2];
+				if (x1 > 0 && y1 > 0) res += t[(y1 - 1) * width + (x1 - 1)];
+				return static_cast<float>(res);
+			};
+
+			float m = get_v(intSum) / area;
+			float s = std::sqrt(std::max(0.0f, (get_v(intSqSum) / area) - (m * m)));
+			if (s < w_min_stddev) w_min_stddev = s;
+			if (s > w_max_stddev) w_max_stddev = s;
+		}
+	}
+
+	// 3. Fused Binarization with Static Scheduling
+	GSImage output_image = image;
 	output_image.pixels.resize(num_pixels);
+	const float range = w_max_stddev - w_min_stddev + 0.0001f;
 
-	const float global_mean = std::accumulate(pixels, pixels + num_pixels, 0.0f) / static_cast<float>(num_pixels);
-
-	// Iterate again for binarization
+// #pragma omp parallel for schedule(static)
 	for (int j = 0; j < height; ++j)
 	{
+		const std::size_t row_ptr = static_cast<std::size_t>(j) * width;
 		for (int i = 0; i < width; ++i)
 		{
-			const size_t index         = j * width + i;
-			const float current_stddev = windows_stddev[index];
-			const float current_mean   = windows_mean[index];
+			int x1 = std::max(0, i - half_window), x2 = std::min(width - 1, i + half_window);
+			int y1 = std::max(0, j - half_window), y2 = std::min(height - 1, j + half_window);
+			const auto area = static_cast<float>((x2 - x1 + 1) * (y2 - y1 + 1));
 
-			// adaptive_stddev
-			float adaptive_stddev = 0.0;
-			if (w_max_stddev > w_min_stddev)
+			auto sum_at = [&](const auto& t)
 			{
-				adaptive_stddev = (current_stddev - w_min_stddev) / (w_max_stddev - w_min_stddev);
-			}
+				double res = t[y2 * width + x2];
+				if (x1 > 0) res -= t[y2 * width + (x1 - 1)];
+				if (y1 > 0) res -= t[(y1 - 1) * width + x2];
+				if (x1 > 0 && y1 > 0) res += t[(y1 - 1) * width + (x1 - 1)];
+				return static_cast<float>(res);
+			};
 
-			// threshold calculation
-			float threshold = current_mean -
-			                  (current_mean * current_mean - current_stddev) /
-			                          ((global_mean + current_stddev) * (adaptive_stddev + current_stddev));
+			float m         = sum_at(intSum) / area;
+			float s         = std::sqrt(std::max(0.0f, (sum_at(intSqSum) / area) - (m * m)));
+			float A         = (s - w_min_stddev) / range;
+			float threshold = m - (m * m - s) / ((global_mean + s) * (A + s) + 0.0001f);
 
-			// binarization
-			output_image.pixels[index] = (pixels[index] < threshold) ? 0 : 255;
+			output_image.pixels[row_ptr + i] = (pixels[row_ptr + i] < threshold) ? 0 : 255;
 		}
 	}
 
