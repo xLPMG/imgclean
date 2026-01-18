@@ -1,11 +1,11 @@
-#include "imgclean/processors/ImageBinarizationProcessor.hpp"
+#include "imgclean/processors/BatainehProcessor.hpp"
 
 #include <cmath>
 
 namespace imgclean::processors
 {
 
-GSImage ImageBinarizationProcessor::apply(const GSImage& image)
+GSImage BatainehProcessor::apply(const GSImage& image)
 {
 	if (image.empty()) return {};
 
