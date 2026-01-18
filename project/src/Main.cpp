@@ -61,21 +61,12 @@ int main(int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				std::string value = argv[++i];
-				if (value == "integral" || value == "adaptive" || value == "niblack" || value == "sauvola" || value == "nick")
-				{
-					approach = value;
-				}
-				else
-				{
-					std::cerr << "Error: --approach must be 'integral' or 'adaptive'\n";
-					print_usage(argv[0]);
-					return EXIT_FAILURE;
-				}
+				// testing if the approach is valid is done in ImgClean
+				approach = argv[++i];
 			}
 			else
 			{
-				std::cerr << "Error: --approach requires a value ('integral' or 'adaptive')\n";
+				std::cerr << "Error: --approach requires a value\n";
 				print_usage(argv[0]);
 				return EXIT_FAILURE;
 			}

@@ -3,12 +3,8 @@
 #include "imgclean/FileHandler.hpp"
 #include "imgclean/ImageFormat.hpp"
 #include "imgclean/PPMImage.hpp"
-#include "imgclean/processors/ImageBinarizationProcessor.hpp"
-#include "imgclean/processors/IntegralImageProcessor.hpp"
-#include "imgclean/processors/NiblackProcessor.hpp"
-#include "imgclean/processors/NickProcessor.hpp"
-#include "imgclean/processors/SauvolaProcessor.hpp"
-#include <imgclean/processors/HelperProcessor.hpp>
+#include "imgclean/processors/processors.hpp"
+#include "imgclean/processors/ProcessorRegistry.hpp"
 #include <iostream>
 #include <string>
 
@@ -73,26 +69,22 @@ bool ImgClean::clean_image(const std::string& input_path, const std::string& out
 	// Convert to grayscale
 	imgclean::GSImage gray_image = imgclean::processors::HelperProcessor::rgb_to_linear_grayscale(image);
 
-	// Apply integral image processor
-	if (approach == "integral")
+	// Apply image processor
+	if (auto applyProcessor = imgclean::processors::get_processor(approach))
 	{
-		gray_image = imgclean::processors::IntegralImageProcessor::apply(gray_image);
+		gray_image = applyProcessor(gray_image);
 	}
-	else if (approach == "adaptive")
+	else
 	{
-		gray_image = imgclean::processors::ImageBinarizationProcessor::apply(gray_image);
-	}
-	else if (approach == "niblack")
-	{
-		gray_image = imgclean::processors::NiblackProcessor::apply(gray_image);
-	}
-	else if (approach == "sauvola")
-	{
-		gray_image = imgclean::processors::SauvolaProcessor::apply(gray_image);
-	}
-	else if (approach == "nick")
-	{
-		gray_image = imgclean::processors::NickProcessor::apply(gray_image);
+		std::cerr << "Error: Unknown approach '" << approach << "'. Supported approaches: ";
+		const auto supported = imgclean::processors::get_supported();
+		for (size_t i = 0; i < supported.size(); ++i)
+		{
+			std::cerr << supported[i];
+			if (i + 1 < supported.size()) std::cerr << ", ";
+		}
+		std::cerr << "\n";
+		return false;
 	}
 
 	// Convert back to RGB

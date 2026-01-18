@@ -1,4 +1,4 @@
-#include "imgclean/processors/IntegralImageProcessor.hpp"
+#include "imgclean/processors/BradleyRothProcessor.hpp"
 
 #include <vector>
 #include <algorithm> // std::max, std::min
@@ -10,7 +10,7 @@ namespace processors
 /**
  * @brief Applies integral image based binarization to the input grayscale image.
  */
-GSImage IntegralImageProcessor::apply(const GSImage& image)
+GSImage BradleyRothProcessor::apply(const GSImage& image)
 {
 	// Note: This implementation seems to be so fast already, that using any OpenMP pragmas
 	// on the for-loops actually made it slower.

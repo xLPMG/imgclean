@@ -1,5 +1,5 @@
-#ifndef IMGCLEAN_PROCESSORS_INTEGRALIMAGEPROCESSOR_HPP
-#define IMGCLEAN_PROCESSORS_INTEGRALIMAGEPROCESSOR_HPP
+#ifndef IMGCLEAN_PROCESSORS_BRADLEY_ROTH_PROCESSOR_HPP
+#define IMGCLEAN_PROCESSORS_BRADLEY_ROTH_PROCESSOR_HPP
 
 #include <imgclean/GSImage.hpp>
 
@@ -7,7 +7,7 @@ namespace imgclean
 {
 namespace processors
 {
-class IntegralImageProcessor
+class BradleyRothProcessor
 {
 public:
 	static GSImage apply(const GSImage& image);
@@ -22,4 +22,4 @@ private:
 };
 } // namespace processors
 } // namespace imgclean
-#endif // IMG_CLEAN_PROCESSORS_INTEGRALIMAGEPROCESSOR_HPP
+#endif // IMGCLEAN_PROCESSORS_BRADLEY_ROTH_PROCESSOR_HPP

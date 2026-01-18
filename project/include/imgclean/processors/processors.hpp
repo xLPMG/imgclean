@@ -1,0 +1,6 @@
+#include "BradleyRothProcessor.hpp"
+#include "HelperProcessor.hpp"
+#include "BatainehProcessor.hpp"
+#include "NiblackProcessor.hpp"
+#include "NickProcessor.hpp"
+#include "SauvolaProcessor.hpp"

@@ -1,11 +1,11 @@
-#ifndef IMGCLEAN_PROCESSORS_IMAGEBINARIZATION_HPP
-#define IMGCLEAN_PROCESSORS_IMAGEBINARIZATION_HPP
+#ifndef IMGCLEAN_PROCESSORS_BATAINEH_PROCESSOR_HPP
+#define IMGCLEAN_PROCESSORS_BATAINEH_PROCESSOR_HPP
 
 #include <imgclean/GSImage.hpp>
 
 namespace imgclean::processors
 {
-class ImageBinarizationProcessor
+class BatainehProcessor
 {
 public:
 	//! Preprocesses the PPM Image with a binarization & local thresholding method
@@ -20,4 +20,4 @@ private:
 } // namespace imgclean::processors
 
 
-#endif //IMG_CLEAN_PROCESSORS_IMAGEBINARIZATION_HPP
+#endif // IMGCLEAN_PROCESSORS_BATAINEH_PROCESSOR_HPP
