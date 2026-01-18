@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 			if (i + 1 < argc)
 			{
 				std::string value = argv[++i];
-				if (value == "integral" || value == "adaptive")
+				if (value == "integral" || value == "adaptive" || value == "niblack" || value == "sauvola" || value == "nick")
 				{
 					approach = value;
 				}

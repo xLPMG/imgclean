@@ -5,6 +5,9 @@
 #include "imgclean/PPMImage.hpp"
 #include "imgclean/processors/ImageBinarizationProcessor.hpp"
 #include "imgclean/processors/IntegralImageProcessor.hpp"
+#include "imgclean/processors/NiblackProcessor.hpp"
+#include "imgclean/processors/NickProcessor.hpp"
+#include "imgclean/processors/SauvolaProcessor.hpp"
 #include <imgclean/processors/HelperProcessor.hpp>
 #include <iostream>
 #include <string>
@@ -78,6 +81,18 @@ bool ImgClean::clean_image(const std::string& input_path, const std::string& out
 	else if (approach == "adaptive")
 	{
 		gray_image = imgclean::processors::ImageBinarizationProcessor::apply(gray_image);
+	}
+	else if (approach == "niblack")
+	{
+		gray_image = imgclean::processors::NiblackProcessor::apply(gray_image);
+	}
+	else if (approach == "sauvola")
+	{
+		gray_image = imgclean::processors::SauvolaProcessor::apply(gray_image);
+	}
+	else if (approach == "nick")
+	{
+		gray_image = imgclean::processors::NickProcessor::apply(gray_image);
 	}
 
 	// Convert back to RGB
