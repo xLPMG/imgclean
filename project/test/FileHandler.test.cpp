@@ -13,7 +13,7 @@ static const std::vector<uint16_t> expected_pixels = {255, 0, 0, 0, 255, 0,   0,
 
 TEST_CASE("FileHandler ASCII PPM Loading", "[FileHandler][PPM]")
 {
-	imgclean::FilePath path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.ppm");
+	imgclean::FilePath path = imgclean::FileHandler::make_file_path("res/test/3x3-test.ppm");
 	imgclean::PPMImage img;
 	bool success = imgclean::FileHandler::load_image(path, img);
 	REQUIRE(success);
@@ -26,9 +26,9 @@ TEST_CASE("FileHandler ASCII PPM Loading", "[FileHandler][PPM]")
 
 TEST_CASE("FileHandler ASCII PPM Saving", "[FileHandler][PPM]")
 {
-	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.ppm");
+	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("res/test/3x3-test.ppm");
 	imgclean::FilePath save_path = imgclean::FileHandler::make_file_path(
-		"../build/test_output/3x3-test-output.ppm");
+		"test_output/3x3-test-output.ppm");
 	imgclean::PPMImage img;
 	bool load_success = imgclean::FileHandler::load_image(load_path, img);
 	REQUIRE(load_success);
@@ -38,7 +38,7 @@ TEST_CASE("FileHandler ASCII PPM Saving", "[FileHandler][PPM]")
 
 TEST_CASE("FileHandler PNG Loading", "[FileHandler][PNG]")
 {
-	imgclean::FilePath path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.png");
+	imgclean::FilePath path = imgclean::FileHandler::make_file_path("res/test/3x3-test.png");
 	imgclean::PPMImage img;
 	bool success = imgclean::FileHandler::load_image(path, img);
 #ifdef CIMG_FOUND
@@ -55,7 +55,7 @@ TEST_CASE("FileHandler PNG Loading", "[FileHandler][PNG]")
 
 TEST_CASE("FileHandler JPG Loading", "[FileHandler][JPG]")
 {
-	imgclean::FilePath path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.jpg");
+	imgclean::FilePath path = imgclean::FileHandler::make_file_path("res/test/3x3-test.jpg");
 	imgclean::PPMImage img;
 	bool success = imgclean::FileHandler::load_image(path, img);
 #ifdef CIMG_FOUND
@@ -78,9 +78,9 @@ TEST_CASE("FileHandler JPG Loading", "[FileHandler][JPG]")
 TEST_CASE("FileHandler PNG Saving", "[FileHandler][PNG]")
 {
 	// Load from PPM and save to PNG
-	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.ppm");
+	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("res/test/3x3-test.ppm");
 	imgclean::FilePath save_path = imgclean::FileHandler::make_file_path(
-		"../build/test_output/3x3-test-output.png");
+		"test_output/3x3-test-output.png");
 	imgclean::PPMImage img;
 	bool load_success = imgclean::FileHandler::load_image(load_path, img);
 	REQUIRE(load_success);
@@ -95,9 +95,9 @@ TEST_CASE("FileHandler PNG Saving", "[FileHandler][PNG]")
 TEST_CASE("FileHandler JPG Saving", "[FileHandler][JPG]")
 {
 	// Load from PPM and save to JPG
-	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("../res/test/3x3-test.ppm");
+	imgclean::FilePath load_path = imgclean::FileHandler::make_file_path("res/test/3x3-test.ppm");
 	imgclean::FilePath save_path = imgclean::FileHandler::make_file_path(
-		"../build/test_output/3x3-test-output.jpg");
+		"test_output/3x3-test-output.jpg");
 	imgclean::PPMImage img;
 	bool load_success = imgclean::FileHandler::load_image(load_path, img);
 	REQUIRE(load_success);

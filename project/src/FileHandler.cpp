@@ -46,8 +46,9 @@ bool FileHandler::load_image(const FilePath& src, PPMImage& out)
 	if (src.format == ImageFormat::PPM_ASCII)
 	{
 		// get file size
-		const auto sz = std::filesystem::file_size(src.path);
-		if (sz == 0) return false;
+		std::error_code ec;
+		const auto sz = std::filesystem::file_size(src.path, ec);
+		if (ec || sz == 0) return false;
 
 		// create buffer
 		std::string buf;

@@ -94,8 +94,15 @@ if (MEASURE_PERFORMANCE)
     target_compile_definitions(imgclean_lib PUBLIC MEASURE_PERFORMANCE)
 endif()
 
-# Copy resource files near executable
-file(COPY ${data} DESTINATION resources)
+# Copy resource files near executable, preserving directory structure
+# In testing builds, copy the full res/ tree so tests can access res/test/*
+# In non-testing builds, copy the full res/ tree and remove res/test afterwards
+if (IS_TESTING_BUILD)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+else()
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/res/test)
+endif()
 
 ###############################################################################
 ## dependencies ###############################################################
