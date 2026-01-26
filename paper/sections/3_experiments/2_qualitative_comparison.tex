@@ -1,0 +1,24 @@
+\subsection{Qualitative Comparison}\label{subsec:qualitative_compare}
+
+Figure~\ref{fig:window_sizes} presents the binarization results obtained with the different adaptive thresholding methods for a window size of $7\times 7$.
+Overall, most approaches are able to separate foreground text from the noisy background, although notable differences in robustness and visual clarity can be observed.
+
+% 7x7
+For the smallest window size, Niblack's method produces the most distinct output. 
+While the algorithm captures the textual structures reasonably well, it fails to suppress background noise effectively, leading to reduced contrast between the text in the image (foreground) and background.
+Sauvola's method improves upon this behavior but still exhibits occasional inaccuracies in low-contrast regions.
+In contrast, the Nick approach yields cleaner results despite being closely related to the Niblack and Sauvola formulations, indicating improved robustness of its modified threshold computation.
+Among all methods Bradley's integral image based approach achieves the clearest separation ot text from background, producing the most visually consistent binarization. 
+
+% 15x15
+Increasing the window size to $15\times 15$ does not fundamentally change the relative performance of the methods, but it affects the amount of remaining background artifacts.
+In particular, the modern approaches by Bradley and Bataineh tend to produce thicker character strokes and more pronounced contours.
+Niblack's method benefits from the larger neighborhood, showing improved foreground-background separation compared to the $7\times 7$ case, although background noise remains more prominent than for the other approaches.
+
+% 21x21 
+For the largest evaluated window size of $21\times 21$, these effects become even more pronounced. 
+While Niblack continues to improve in separating text from background, the output of Bataineh's method increasingly includes bold foreground structures as well as additional background contours.
+This behavior is illustrated in Figure~\ref{fig:bataineh_window_sizes}, where larger windows lead to stronger stroke widths. 
+
+Overall, Bradley's approach appears least sensitive to different window sizes, providing consistently high-quality binarization across all evaluated configurations.
+Bataineh's method achieves strong contrast but requires careful parameter selection, whereas the classical methods show moderate improvements with increasing window size but remain less robust under heavy noise.

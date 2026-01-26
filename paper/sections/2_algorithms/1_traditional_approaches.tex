@@ -1,0 +1,44 @@
+\subsection{Traditional Approaches}\label{subsec:traditional}
+
+As traditional approaches, we consider the three established local adaptive thresholding techniques: Niblack~\cite{Niblack1985}, Sauvola~\cite{Sauvola1997}, and Nick~\cite{Khurshid2009}.
+All three approaches compute a pixel-wise threshold based on statistics extracted from a local window centered around each pixel.
+The binarized output is then obtained by comparing the pixel intensity against the locally computed threshold. 
+
+% Niblack
+\paragraph{Niblack Thresholding.}
+Niblack's method computes the local mean intensity $m$ and standard deviation $\sigma$ within a sliding window.
+The threshold is defined as
+
+\begin{equation}
+    T = m + k \cdot \sigma ,
+\end{equation}
+
+where $k$ is a user-defined parameter controlling the influence of local contrast. 
+In our experiments, we use $k=-0.2$, as suggested in the original formulation.
+Each pixel is classified according to whether its grayscale intensity is below or above the threshold, producing a binary image.
+
+% Sauvola
+\paragraph{Sauvola Thresholding.}
+Sauvola and Pietikäinen~\cite{Sauvola1997} extend Niblack's approach by introducing a normalization term that improves robustness in low-contrast and noisy regions.
+The thresholding is computed as
+
+\begin{equation}
+    T = m \left(1 + k \left(\frac{\sigma}{R} - 1\right)\right) ,
+\end{equation}
+
+where $R$ denotes the dynamic range of the standard deviation (commonly set to $R=128$ for 8-bit images).
+The parameter $k$ typically lies in the range $[0.2, 0.5]$. 
+In our implementation, we select $k = 0.34$ and $R = 128$. 
+
+% Nick
+\paragraph{Nick Thresholding.}
+Khurshid et al.~\cite{Khurshid2009} propose the Nick method to address contrast degradation observed in Sauvola's formulation.
+Instead of directly using $\sigma$, the method incorporates the second moment of the local intensity distribution:
+
+\begin{equation}
+    T = m + k \cdot \sqrt{\frac{(\sum P_i^2 - m^2)}{N}},
+\end{equation}
+
+where $P_i$ denotes the pixel intensities within the local window and $N$ is the number of pixels in that window.
+The parameter $k$ is typically chosen in the range $[-0.2, -0.1]$.
+In our experiments, we use $k = -0.15$.

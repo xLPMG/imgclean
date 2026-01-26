@@ -1,0 +1,44 @@
+\subsection{Runtime Performance}\label{subsec:runtime_perf}
+
+For the evaluation of the computational efficiency of the implemented approaches, we examine the runtime impact of the optimizations described in Section~\ref{subsec:optimizations}.
+
+\paragraph{Optimization Impact.}
+Table~\ref{tab:table_bataneih} summarizes the progressive runtime improvements obtained for the method of Bataineh et al.~\cite{Bataineh2011}.
+Starting from a naive baseline implementation with explicit sliding-window computations, successive optimizations significantly reduced the execution time.
+
+% Table 1: Compares different optimizations for Bataineh's approach
+\begin{table}[t]
+    \begin{tabular}{lcccc}
+                  & Base & Single-Pass & Integral Image & OpenMP \\
+        \hline
+        Time (ms) & 1330 & 748         & 188            & 195
+    \end{tabular}
+    \caption{Runtime comparison of optimization stages for Bataneih's method on the medium-resolution image.}
+    \label{tab:table_bataneih}
+\end{table}
+
+The results demonstrate that algorithmic improvements, particularly the use of integral images, provide the largest performance gain.
+Overall, the optimized implementation achieves an approximate $7\times$ speedup compared to the baseline.
+Interestingly, the OpenMP parallelized version does not yield further improvement, suggesting that the computation becomes limited by memory access overhead and parallelization costs rather than arithmetic operations.
+
+\paragraph{High-Resolution Image Runtime.}
+To better distinguish the performance characteristics of the different approaches, we also benchmarked all optimized methods on a high-resolution image of size $6700 \times 4467$ pixels.
+The resulting runtimes are reported in Table~\ref{tab:table_compare}.
+
+% Table 2: Comparing the different approaches on a 4K picture
+\begin{table}[t]
+    \begin{tabular}{lc}
+        Approach & Time (s) \\
+        \hline
+        Niblack  & 6.30 \\
+        Sauvola  & 6.44 \\
+        Nick     & 6.34 \\
+        Bataineh & 6.39 \\
+        Bradley  & 4.55 
+    \end{tabular}
+    \caption{Running times of the optimized approaches on the high-resolution image.}
+    \label{tab:table_compare}
+\end{table}
+
+All classical window-based methods exhibit similar runtime behavior, as they require both mean and standard deviation statistics for each pixel.
+Bradley's approach achieves the lowest runtime, which can be attributed to its reliance on mean-based thresholding only, combined with the efficiency of integral image evaluation.

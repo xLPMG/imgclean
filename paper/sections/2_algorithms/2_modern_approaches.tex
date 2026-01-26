@@ -1,0 +1,50 @@
+\subsection{Modern Approaches}\label{subsec:modern}
+
+In addition to the classical local thresholding methods derived from Niblack's formulation~\cite{Niblack1985}, we also investigate two more recent adaptive binarization approaches that emphasize computational efficiency and robustness under challenging illumination conditions.
+
+% Integral Image: Fast Mean-Based Approach
+\paragraph{Integral-Image-Based Thresholding.}
+Bradley and Roth~\cite{Bradley2007} propose a fast adaptive thresholding technique based on integral images.
+The central idea is to compute local mean pixel values (intensities) efficiently by using a cumulative sum representation.
+
+% Integral Processing
+Given an image $f(x,y)$, the integral image $S(x,y)$ is defined as 
+
+\begin{equation}
+  S(x,y) = \sum_{i=0}^{x} \sum_{j=0}^{y} f(i,j).
+\end{equation}
+
+Using this representation, the sum of intensities within any rectangular window can be obtained in constant time, independent of the window size.
+This significantly reduces the computational cost of sliding-window thresholding.
+
+The method compares each pixel value against the average intensity of its surrounding $s \times s$ neighborhood.
+A pixel is classified as foreground if its intensity is at least $t$ percent lower than the local mean.
+Otherwise, it is assigned to the background.
+The overall procedure consists of the following steps:
+
+\begin{enumerate}
+  \item Compute the integral image representation of the input.
+  \item Apply the adaptive mean-based threshold to produce the binarized output.
+\end{enumerate}
+
+% Bataineh: Naive Local Statistics Approach
+\paragraph{Adaptive Statistics Thresholding.}
+Bataineh et al.~\cite{Bataineh2011} introduce an adaptive thresholding approach that incorporates both local and global image statistics. 
+In contrast to purely mean-based methods, their formulation adjusts the threshold using an adaptive standard deviation term derived from local window variations.
+
+The threshold is defined as
+
+\begin{equation}
+  T = m_W - \frac{m^2_W - \sigma_W}{(m_g + \sigma_W) \times (\sigma_{\text{Adaptive}} + \sigma_W)} ,
+\end{equation}
+
+where $m_W$ and $\sigma_W$ denote the mean and standard deviation within the current window, and $m_g$ is the global mean intensity of the entire image.
+
+The adaptive standard deviation is computed as a normalized measure of local contrast:
+
+\begin{equation}
+  \sigma_{\text{Adaptive}} = \frac{\sigma_W - \sigma_{\min}}{\sigma_{\max} - \sigma_{\min}},
+\end{equation}
+
+where $\sigma_{\min}$ and $\sigma_{\max}$ represent the minimum and maximum window standard deviations observed across the image.
+This normalization allows the method to adjust the threshold dynamically depending on the degree of local variation.

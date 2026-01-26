@@ -1,0 +1,24 @@
+\subsection{Our Contributions}\label{subsec:contributions}
+
+This paper provides a focused empirical and implementation oriented study of adaptive thresholding techniques applied to noisy PPM and JPEG color images.
+Rather than proposing new denoising algorithms, we emphasize on the efficient realization and practical evaluation of established methods.
+
+Our contributions lie in the careful adaption of color image data, the use of integral image representations to eliminate redundant computations, and a systematic performance analysis guided by runtime profiling.
+Through comparative evaluation, we demonstrate how algorithmic choices affect denoising quality and how the implementation decisions impact the computational efficiency. 
+
+
+% - implemented different approaches
+% - compared different approaches
+% - integral
+% - binarization
+%   - 
+% - show different approaches next to each other
+
+% % Optimizations
+
+% - running our applications on Mac
+% - using the "Instruments" Profiler inherent on mac
+% - idea: only optimize what is necessary / causing a great bottleneck
+% - baseline image (binarization)
+%   - shows memory access of the two vectors for $windows_{mean}$ and $windows_{stddev}$
+% - rewriting the loops (not calculate everything twice) (before $4^n$ not $2^n$) - using integral images

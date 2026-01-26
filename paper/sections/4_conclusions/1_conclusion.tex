@@ -1,0 +1,12 @@
+\section{Conclusions}\label{sec:conclusion}
+
+We investigated several established and modern adaptive thresholding techniques for the denoising and binarization of noisy color images, with a particular focus on efficient processing of PPM image data.
+All methods were implemented according to their original formulations and evaluated with respect to both binarization quality and computational performance.
+
+Our qualitative experiments show that classical approaches such as Niblack and Sauvola provide reasonable results but are less robust to background noise compared to more recent methods.
+The Nick method improves upon these baselines, while the approaches of Bataineh and Bradley achieve the highest visual quality.
+Bradley's method in particular produces the most consistent foreground-background separation across different window sizes.
+
+In terms of efficiency, profiling-guided optimizations demonstrate that the computation of local window statistics is the dominant performance factor.
+Integral image based implementations substantially reduce redundant calculations and provide significant runtime improvements, especially for high-resolution images.
+Overall, our results highlight the importance of combining adaptive thresholding formulations with efficient implementation strategies.
