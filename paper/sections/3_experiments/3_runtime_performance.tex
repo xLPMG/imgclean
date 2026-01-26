@@ -3,7 +3,7 @@
 For the evaluation of the computational efficiency of the implemented approaches, we examine the runtime impact of the optimizations described in Section~\ref{subsec:optimizations}.
 
 \paragraph{Optimization Impact.}
-Table~\ref{tab:table_bataneih} summarizes the progressive runtime improvements obtained for the method of Bataineh et al.~\cite{Bataineh2011}.
+Table~\ref{tab:table_bataineh} summarizes the progressive runtime improvements obtained for the method of Bataineh et al.~\cite{Bataineh2011}.
 Starting from a naive baseline implementation with explicit sliding-window computations, successive optimizations significantly reduced the execution time.
 
 % Table 1: Compares different optimizations for Bataineh's approach
@@ -13,8 +13,8 @@ Starting from a naive baseline implementation with explicit sliding-window compu
         \hline
         Time (ms) & 1330 & 748         & 188            & 195
     \end{tabular}
-    \caption{Runtime comparison of optimization stages for Bataneih's method on the medium-resolution image.}
-    \label{tab:table_bataneih}
+    \caption{Runtime comparison of optimization stages for Bataineh's method on the medium-resolution image.}
+    \label{tab:table_bataineh}
 \end{table}
 
 The results demonstrate that algorithmic improvements, particularly the use of integral images, provide the largest performance gain.
