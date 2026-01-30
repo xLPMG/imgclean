@@ -3,9 +3,7 @@
 
 namespace imgclean::processors
 {
-/**
- * @brief Applies Niblacks thresholding to an image.
- */
+
 GSImage NiblackProcessor::apply(const GSImage& image)
 {
 	if (image.empty()) return GSImage();

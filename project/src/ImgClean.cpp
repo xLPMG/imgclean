@@ -3,8 +3,8 @@
 #include "imgclean/FileHandler.hpp"
 #include "imgclean/ImageFormat.hpp"
 #include "imgclean/PPMImage.hpp"
-#include "imgclean/processors/processors.hpp"
 #include "imgclean/processors/ProcessorRegistry.hpp"
+#include "imgclean/processors/processors.hpp"
 #include <iostream>
 #include <string>
 

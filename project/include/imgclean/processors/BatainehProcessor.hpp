@@ -8,7 +8,7 @@ namespace imgclean::processors
 class BatainehProcessor
 {
 public:
-	//! Preprocesses the PPM Image with a binarization & local thresholding method
+ 	//! Applies the Bataineh et al. algorithm to a grayscale image.
 	static GSImage apply(const GSImage& image);
 
 private:

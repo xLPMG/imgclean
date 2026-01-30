@@ -8,6 +8,9 @@ namespace imgclean::processors
 class SauvolaProcessor
 {
 public:
+	//! Applies the Sauvola thresholding algorithm: 
+	//! T = m * (1 + k * (1 - σ / R)) #
+	//! to a grayscale image.
 	static GSImage apply(const GSImage& image);
 
 private:

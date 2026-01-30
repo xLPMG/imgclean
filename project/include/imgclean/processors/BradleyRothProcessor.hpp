@@ -10,6 +10,7 @@ namespace processors
 class BradleyRothProcessor
 {
 public:
+	//! Applies the Bradley-Roth algorithm to a grayscale image.
 	static GSImage apply(const GSImage& image);
 
 private:

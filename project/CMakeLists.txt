@@ -163,28 +163,3 @@ if (EXIF_FOUND)
 else()
     message(STATUS "EXIF not found - EXIF support disabled")
 endif()
-
-###############################################################################
-## packaging ##################################################################
-###############################################################################
-
-# # all install commands get the same destination. this allows us to use paths
-# # relative to the executable.
-# install(TARGETS imgclean DESTINATION imgclean_destination)
-# # this is basically a repeat of the file copy instruction that copies the
-# # resources in the build directory, but here we tell CMake that we want it
-# # in the package
-# install(DIRECTORY resources DESTINATION imgclean_destination)
-# # now comes everything we need, to create a package
-# # there are a lot more variables you can set, and some
-# # you need to set for some package types, but we want to
-# # be minimal here
-# set(CPACK_PACKAGE_NAME "imgclean")
-# set(CPACK_PACKAGE_VERSION "0.0.0")
-# set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "TODO")
-
-# # we don't want to split our program up into several things
-# set(CPACK_MONOLITHIC_INSTALL 1)
-
-# # This must be last
-# include(CPack)

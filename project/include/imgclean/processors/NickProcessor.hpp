@@ -8,6 +8,9 @@ namespace imgclean::processors
 class NickProcessor
 {
 public:
+	//! Applies the Nick thresholding algorithm: 
+	//! T = m + k * sqrt{(sum(P_i^2 - m^2)) / (N*P)} 
+	//! to a grayscale image.
 	static GSImage apply(const GSImage& image);
 
 private:

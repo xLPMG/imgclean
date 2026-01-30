@@ -8,6 +8,7 @@ namespace imgclean::processors
 class NiblackProcessor
 {
 public:
+	//! Applies the Niblack thresholding algorithm to a grayscale image.
 	static GSImage apply(const GSImage& image);
 
 private:

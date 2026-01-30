@@ -3,9 +3,7 @@
 
 namespace imgclean::processors
 {
-/**
- * @brief Applies Nick thresholding: T = m + k * sqrt{(sum(P_i^2 - m^2)) / (N*P)} to an image.
- */
+
 GSImage NickProcessor::apply(const GSImage& image)
 {
 	if (image.empty()) return GSImage();
