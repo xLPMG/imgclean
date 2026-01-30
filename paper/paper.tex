@@ -46,9 +46,9 @@
 \begin{abstract}
 
   Image denoising and binarization are fundamental preprocessing tasks in image processing. 
-  This paper investigates adaptive thresholding techniques for producing clean black-and-white representations of noisy color images, with a focus on efficient processing of PPM image data.
+  This paper investigates adaptive thresholding techniques for producing clean black-and-white representations of noisy color images, with a focus on efficient processing of PPM3 image data.
   We implement and compare several classical local thresholding methods including Niblack, Sauvola, and Nick, as well as more modern adaptive approaches proposed by Bradley and Roth and by Bataineh et al.
-  All methods are evaluated with respect to binarization quality, robustness to different window sizes, and computational performance.
+  All methods are evaluated with respect to binarization quality, particularly in terms of how efficiently they enhance the readability of textual content in noisy images, their robustness to different window sizes, and their computational performance.
   Our results show that modern integral image based approaches achieve superior foreground-background separation.
   In addition, profiling-guided optimizations demonstrate that integral images substantially reduce redundant sliding-window computations, leading to significant runtime improvements.
   These findings emphasize the importance of efficient local statistics computation for scalable adaptive thresholding.

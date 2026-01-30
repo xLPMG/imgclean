@@ -1,8 +1,8 @@
-- evtl im Intro/Abstract darauf eingehen, dass Text besser lesbar gemacht werden soll
+- Check: evtl im Intro/Abstract darauf eingehen, dass Text besser lesbar gemacht werden soll
     - 
 - Experimental Setup:
     - nochmal erwähnen dass benchmarks PPM3 nutzen
-    - Welche Hardware? zBsp Cores, RAM, Cache, wurde nur CPU oder auch GPU genutzt?
-    - Welche Software? zBsp MacOS 26.2; wie viele Threads wurden genutzt?
-    - Wir benutzen OpenMP für das Pre-Processing (wird aber glaube nicht erwähnt)
-- Sortierung der Quellen
+    - Check: Welche Hardware? zBsp Cores, RAM, Cache, wurde nur CPU oder auch GPU genutzt? 
+    - Check: Welche Software? zBsp MacOS 26.2; wie viele Threads wurden genutzt?
+    - Check: Wir benutzen OpenMP für das Pre-Processing (wird aber glaube nicht erwähnt)
+- Check: Sortierung der Quellen
