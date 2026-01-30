@@ -50,6 +50,8 @@ message("--------------------------------------------------")
 
 # Core static library
 add_library(imgclean_lib STATIC ${sources})
+# Set output name to avoid "_lib" suffix
+set_target_properties(imgclean_lib PROPERTIES OUTPUT_NAME imgclean)
 target_include_directories(imgclean_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Precompiled headers (PCH)
