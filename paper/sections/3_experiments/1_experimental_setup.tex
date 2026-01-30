@@ -5,8 +5,8 @@ Experiments were performed on two representative test images of different resolu
 A medium-sized image of resolution $736 \times 981$ pixels was used primarily for qualitative comparison, as it allows clear visual assessment of binarization quality.
 In addition, a high-resolution image of size $6700 \times 4467$ pixels was used for performance benchmarking in order to analyze the runtime behavior under computationally demanding conditions.
 
-All images were converted to grayscale using the preprocessing procedure described in Section~\ref{sec:ATA}.
-The preprocessing step was parallelized using OpenMP.
+In each run of the experiment, the PPM image is first loaded from disk and then converted to grayscale using the preprocessing procedure described in Section~\ref{sec:ATA}. Next, the selected approach is applied on the grayscale image data. After processing, the image is converted back to RGB by copying the grayscale values to each color channel. Lastly, the image is saved back to disk in PPM format.
+
 We evaluate the classical local thresholding methods as well as the more recent adaptive approaches.
 For all window-based techniques, we test multiple neighborhood sizes ($7\times 7$, $15\times 15$ and $21\times 21$) to study the effect of window size on robustness and output quality.
 Runtime measurements are reported for the high-resolution image to highlight the impact of integral-image acceleration and parallelization.
