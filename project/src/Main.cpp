@@ -1,4 +1,5 @@
 #include "imgclean/ImgClean.hpp"
+#include "imgclean/processors/ProcessorRegistry.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -14,7 +15,15 @@ void print_usage(const char* program_name)
 	std::cerr << "Options:\n";
 	std::cerr << "  -i, --input <file>      Input image file\n";
 	std::cerr << "  -o, --output <file>     Output image file\n";
-	std::cerr << "  -a, --approach <type>   Cleaning approach: 'integral' or 'adaptive' (default: adaptive)\n";
+	std::cerr << "  -a, --approach <type>   Image processing approach (default: bradley-roth)\n";
+	std::cerr << "                          Supported options: ";
+	const auto supported = imgclean::processors::get_supported();
+	for (size_t i = 0; i < supported.size(); ++i)
+	{
+		std::cerr << supported[i];
+		if (i + 1 < supported.size()) std::cerr << ", ";
+	}
+	std::cerr << "\n";
 }
 
 int main(int argc, char** argv)
@@ -24,7 +33,7 @@ int main(int argc, char** argv)
 	/////////////////////////////////////////////////////////////////////////
 	std::string input_path;
 	std::string output_path;
-	std::string approach = "adaptive";
+	std::string approach = "bradley-roth";
 
 	// Parse command line arguments
 	for (int i = 1; i < argc; ++i)
