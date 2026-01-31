@@ -1,0 +1,25 @@
+\subsection{Performance Optimization}\label{subsec:optimizations}
+
+In addition to evaluation denoising quality, we place strong emphasis on computational efficiency.
+Many adaptive thresholding techniques require the computation of local statistics over sliding windows, which can become a major performance bottleneck for high-resolution images.
+To systematically improve runtime performance, we applied profiling guided optimizations using the \textit{Instruments} profiler on macOS.
+To illustrate this process, we focus on the implementation of the adaptive thresholding method proposed by Bataineh et al.~\cite{Bataineh2011}.
+
+% \paragraph{Baseline Window Computation.}
+Our initial baseline implementation followed the direct formulation of the algorithms, computing the local mean and standard deviation independently for each pixel by explicitly iterating over all pixels within the corresponding window.
+Due to overlapping neighborhoods, this approach performs a large number of redundant computations and scales poorly with increasing window size.
+
+% \paragraph{Reduced Window Computations.}
+As a first optimization, we reformulated the variance computation to obtain both the mean and standard deviation in a single window pass by accumulating the sum of pixel and squared pixel values.
+This reduces constant overhead and preserves the original thresholding formulation. 
+
+% \paragraph{Integral Image Acceleration.}
+A more substantial improvement was achieved by adopting integral image representations. 
+This optimization reduces the overall computational complexity of window-based thresholding from quadratic to linear in the number of pixels.
+
+% \paragraph{Parallel Execution.}
+Finally, we explored parallel implementations using OpenMP.
+Since threshold computations are independent for each pixel, the algorithms exhibit a high degree of data parallelism.
+Parallel execution may therefore provide additional runtime improvements on multicore architectures.
+
+Together, these optimizations significantly reduce execution time while maintaining the denoising effectiveness of the underlying adaptive thresholding approach.

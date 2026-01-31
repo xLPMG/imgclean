@@ -15,8 +15,8 @@ GSImage BatainehProcessor::apply(const GSImage& image)
 	const unsigned char* pixels  = image.pixels.data();
 
 	// 1. Pre-calculate Integral Images once (Linear scan)
-	std::vector<uint32_t> intSum(num_pixels);
-	std::vector<float> intSqSum(num_pixels);
+	std::vector<uint32_t> int_sum(num_pixels);
+	std::vector<float> int_squared_sum(num_pixels);
 
 	for (int j = 0; j < image_height; ++j)
 	{
@@ -29,12 +29,13 @@ GSImage BatainehProcessor::apply(const GSImage& image)
 			const auto val        = static_cast<float>(pixels[idx]);
 			row_sum += static_cast<uint32_t>(val);
 			row_squared_sum += val * val;
-			intSum[idx]   = (j == 0) ? row_sum : row_sum + intSum[idx - image_width];
-			intSqSum[idx] = (j == 0) ? row_squared_sum : row_squared_sum + intSqSum[idx - image_width];
+			int_sum[idx]         = (j == 0) ? row_sum : row_sum + int_sum[idx - image_width];
+			int_squared_sum[idx] = (j == 0) ? row_squared_sum
+			                                : row_squared_sum + int_squared_sum[idx - image_width];
 		}
 	}
 
-	const float global_mean = static_cast<float>(intSum.back()) / num_pixels;
+	const float global_mean = static_cast<float>(int_sum.back()) / num_pixels;
 
 	// 2. Fast Global Min/Max StdDev (Sub-sampled to stay in Cache)
 	float w_min_stddev = 1000.0f;
@@ -59,8 +60,8 @@ GSImage BatainehProcessor::apply(const GSImage& image)
 				return static_cast<float>(res);
 			};
 
-			float m = get_v(intSum) / area;
-			float s = std::sqrt(std::max(0.0f, (get_v(intSqSum) / area) - (m * m)));
+			float m = get_v(int_sum) / area;
+			float s = std::sqrt(std::max(0.0f, (get_v(int_squared_sum) / area) - (m * m)));
 			if (s < w_min_stddev) w_min_stddev = s;
 			if (s > w_max_stddev) w_max_stddev = s;
 		}
@@ -90,8 +91,8 @@ GSImage BatainehProcessor::apply(const GSImage& image)
 				return static_cast<float>(res);
 			};
 
-			const float mean   = sum_at(intSum) / area;
-			const float stddev = std::sqrt(std::max(0.0f, (sum_at(intSqSum) / area) - (mean * mean)));
+			const float mean = sum_at(int_sum) / area;
+			const float stddev = std::sqrt(std::max(0.0f, (sum_at(int_squared_sum) / area) - (mean * mean)));
 			const float adaptive_stddev = (stddev - w_min_stddev) / range;
 
 			// For formatting

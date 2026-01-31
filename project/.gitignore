@@ -42,4 +42,4 @@ build/
 *.app
 
 # debug information files
-*.dwo
+*.dwoproject/res/test/speed/

@@ -1,0 +1,25 @@
+\section{Adaptive Thresholding Approaches} \label{sec:ATA}
+
+This section describes the denoising and binarization algorithms investigated in this work.
+All implemented approaches follow their original mathematical formulations; however, the underlying implementations are adapted to improve efficiency and to accommodate the processing of color image data.
+
+% First pre-process (colored image (r,g,b) to gray scale value)
+As an initial preprocessing step, all input color images are converted to grayscale. 
+This allows subsequent denoising and binarization algorithms to operate on a single intensity channel, simplifying the computation of local statistics while preserving the relevant structural information of the image.
+
+The grayscale intensity is computed from the RGB color channels using a linear luminance approximation. 
+This approach combines the red, green, and blue components using fixed weighting factors, reflecting their relative contribution to perceived brightness.
+Following conversion, the resulting grayscale image is normalized to an 8-bit intensity range to ensure consistent scaling across different inputs and formats.
+
+% plug in respective formulas
+This preprocessing step is applied uniformly to all evaluated approaches and image formats and does not alter the underlying denoising or thresholding formulations.
+By standardizing the input representation, it enables a fair comparison of the considered algorithms and isolates the effects of the thresholding techniques and implementation strategies discussed in the subsequent sections.
+
+% Next sections: Explain shortly which approaches we looked at:
+% - Baseline:
+%     - Niblack
+%     - Sauvola
+%     - Nick
+% - SOTA:
+%     - binarization
+%     - integral

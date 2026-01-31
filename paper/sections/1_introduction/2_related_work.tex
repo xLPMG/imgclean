@@ -1,0 +1,11 @@
+\subsection{Related Work}\label{subsec:related}
+
+Numerous approaches have been proposed for image denoising and binarization.
+Classical methods include the local thresholding techniques introduced by Niblack~\cite{Niblack1985}, Sauvola et al.~\cite{Sauvola1997} and Khurshid et al.~\cite{Khurshid2009}.
+These methods compute pixel-wise thresholds based on local image statistics such as the mean and standard deviation, with later approaches refining the original formulation by improving robustness to noise and contrast variations.
+
+More recent work has emphasized on computationally efficient adaptive thresholding strategies. 
+Bradley and Roth~\cite{Bradley2007} propose an approach based on integral images, enabling local threshold computation.
+This strategy is particularly suitable for high-resolution and noisy images. 
+Similarly, Bataineh et al.~\cite{Bataineh2011} demonstrate improved binarization quality under challenging illumination conditions using adaptive thresholding. 
+These approaches are especially relevant for PPM images, where local noise and intensity fluctuations limit the effectiveness of global thresholding techniques.
